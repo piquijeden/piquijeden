@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Janusz w Biedronce</title>
+  <title>Pierbonka</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -35,7 +35,7 @@
   </style>
 </head>
 <body>
-  <h1>Janusz łapie promocje</h1>
+  <h1>Cel: Złap promocje z januszem</h1>
   <div class="hud">
     <div id="score">Punkty: 0</div>
     <div id="lives">Życia: 3</div>
@@ -62,10 +62,10 @@
     const janusz = { x: 360, y: H - 220, speed: 7, basketOffsetX: 55, basketOffsetY: 110, basketWidth: 150, basketHeight: 38 };
     const products = [
       { name: 'Chleb', color: '#d9a55a' }, { name: 'Mleko', color: '#bfe3ff' }, { name: 'Ser', color: '#ffd95e' },
-      { name: 'Banany', color: '#f3e04f' }, { name: 'Sok', color: '#ff9b3d' }, { name: 'Parówki', color: '#de6b6b' },
-      { name: 'Jabłka', color: '#7ccf6a' }, { name: 'Masło', color: '#fff2a8' }
+      { name: 'Wódka', color: '#f3e04f' }, { name: 'Czteropak', color: '#ff9b3d' }, { name: 'Parówki', color: '#de6b6b' },
+      { name: 'Cebula', color: '#7ccf6a' }, { name: 'Masło', color: '#fff2a8' }
     ];
-    let fallSpeed = 4.8;
+    let fallSpeed = 2.8;
     let product = null;
     const pauseButtons = {
       continue: { x: 290, y: 255, w: 220, h: 50 },
@@ -112,7 +112,7 @@
       const shelves = [
         { x: 40, color: '#ffe14d', text: 'PROMOCJE' },
         { x: 80 + shelfW, color: '#ff5757', text: 'NABIAŁ' },
-        { x: 120 + shelfW * 2, color: '#7fd36b', text: 'OWOCE' }
+        { x: 120 + shelfW * 2, color: '#7fd36b', text: 'ALKOHOLE' }
       ];
       ctx.lineWidth = 3; ctx.strokeStyle = '#333'; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       for (const s of shelves) { ctx.fillStyle = s.color; ctx.fillRect(s.x, 70, shelfW, 100); ctx.strokeRect(s.x, 70, shelfW, 100); ctx.fillStyle = '#111'; ctx.fillText(s.text, s.x + shelfW / 2, 120); }
