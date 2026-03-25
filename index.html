@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>piq</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #0d0d0d;
+      color: #f5f5f5;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logo {
+      font-size: clamp(64px, 14vw, 180px);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: lowercase;
+      color: white;
+    }
+
+    .bottom-buttons {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .bottom-buttons a {
+      text-decoration: none;
+      color: #f5f5f5;
+      border: 1px solid #333;
+      background: #161616;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      transition: 0.2s ease;
+    }
+
+    .bottom-buttons a:hover {
+      background: #f5f5f5;
+      color: #111;
+      border-color: #f5f5f5;
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">piq</div>
+
+  <div class="bottom-buttons">
+    <a href="#">o mnie</a>
+    <a href="#">projekty</a>
+    <a href="#">kontakt</a>
+  </div>
+</body>
+</html>
