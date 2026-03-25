@@ -1,21 +1,18 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Symulator windy</title>
+  <title>Elevator Simulator</title>
   <style>
     :root {
       --bg1: #0b0f17;
       --bg2: #101826;
-      --panel: rgba(255,255,255,0.08);
       --line: rgba(255,255,255,0.14);
       --text: #eef4ff;
       --muted: #aeb9cc;
-      --glow: #6ec8ff;
       --accent: #ffcf5a;
       --accent2: #7cff9d;
-      --danger: #ff7676;
     }
 
     * { box-sizing: border-box; }
@@ -153,8 +150,10 @@
       box-shadow: inset 0 0 14px rgba(255,255,255,0.03), 0 8px 20px rgba(0,0,0,0.22);
     }
 
-    .hall-btn:hover, .cab-btn:hover, .toggle:hover, .door-btn:hover {
-      transform: translateY(-50%) scale(1.04);
+    .hall-btn:hover,
+    .cab-btn:hover,
+    .toggle:hover,
+    .door-btn:hover {
       box-shadow: 0 0 0 1px rgba(110,200,255,0.35), 0 0 18px rgba(110,200,255,0.22), 0 10px 20px rgba(0,0,0,0.25);
     }
 
@@ -184,7 +183,6 @@
       width: 8px;
       border-radius: 8px;
       background: linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.04));
-      box-shadow: inset 0 0 10px rgba(255,255,255,0.04);
       z-index: 1;
     }
 
@@ -230,15 +228,12 @@
       bottom: 0;
       width: 50%;
       background: linear-gradient(180deg, #909fb2, #677588);
-      border-right: 1px solid rgba(255,255,255,0.3);
       transition: transform 0.8s cubic-bezier(.2,.9,.2,1);
     }
 
     .door.right {
       right: 0;
       left: auto;
-      border-right: 0;
-      border-left: 1px solid rgba(255,255,255,0.3);
     }
 
     .car.open .door.left { transform: translateX(-92%); }
@@ -386,25 +381,15 @@
     }
 
     .cab-btn {
-      position: relative;
       height: 92px;
       border: 1px solid rgba(255,255,255,0.18);
       border-radius: 22px;
       background: radial-gradient(circle at 35% 25%, rgba(255,255,255,0.13), rgba(255,255,255,0.03));
       color: var(--text);
       cursor: pointer;
-      transition: transform 0.12s ease, box-shadow 0.18s ease, background 0.18s ease;
+      transition: box-shadow 0.18s ease, background 0.18s ease;
       box-shadow: inset 0 0 14px rgba(255,255,255,0.03), 0 8px 18px rgba(0,0,0,0.22);
       overflow: hidden;
-    }
-
-    .cab-btn::after, .hall-btn::after {
-      content: "";
-      position: absolute;
-      inset: 8px;
-      border-radius: inherit;
-      border: 1px solid rgba(255,255,255,0.04);
-      pointer-events: none;
     }
 
     .cab-floor {
@@ -441,13 +426,6 @@
       transition: .16s ease;
       box-shadow: 0 10px 18px rgba(0,0,0,.18);
     }
-
-    .door-btn:active, .cab-btn:active, .hall-btn:active, .toggle:active {
-      transform: scale(.98);
-    }
-
-    .door-btn.open-now { box-shadow: 0 0 18px rgba(124,255,157,.24); }
-    .door-btn.close-now { box-shadow: 0 0 18px rgba(255,118,118,.18); }
 
     .toggles {
       display: grid;
@@ -500,11 +478,11 @@
   <div class="app">
     <section class="left">
       <div class="header">
-        <div class="title">Winda</div>
+        <div class="title">Elevator</div>
         <div class="status-strip">
-          <div class="pill" id="modePill">Tryb: normal</div>
-          <div class="pill" id="doorPill">Drzwi: zamknięte</div>
-          <div class="pill" id="soundPill">Dźwięk: on</div>
+          <div class="pill" id="modePill">Mode: normal</div>
+          <div class="pill" id="doorPill">Doors: closed</div>
+          <div class="pill" id="soundPill">Sound: on</div>
         </div>
       </div>
 
@@ -515,7 +493,7 @@
           <div class="shaft rails">
             <div class="car" id="car">
               <div class="car-top"></div>
-              <div class="car-display" id="carDisplay">P1</div>
+              <div class="car-display" id="carDisplay">F1</div>
               <div class="car-body">
                 <div class="door left"></div>
                 <div class="door right"></div>
@@ -526,12 +504,14 @@
 
         <aside class="queue-panel">
           <div>
-            <div class="queue-title">Kolejka pięter</div>
+            <div class="queue-title">Floor queue</div>
             <div class="queue-list" id="queueList"></div>
           </div>
           <div>
-            <div class="queue-title">Klikaj na piętra</div>
-            <div style="color: var(--muted); line-height: 1.6; font-size: 14px;">Możesz wciskać przyciski na panelu windy i przy drzwiach na piętrach. Winda zapamiętuje kolejkę, świeci przyciski i otwiera drzwi po dojechaniu.</div>
+            <div class="queue-title">Press floor buttons</div>
+            <div style="color: var(--muted); line-height: 1.6; font-size: 14px;">
+              You can press the buttons inside the elevator and on each floor. The elevator remembers the queue, lights up buttons, and opens the doors when it arrives.
+            </div>
           </div>
         </aside>
       </div>
@@ -539,35 +519,35 @@
 
     <section class="right">
       <div class="display-panel">
-        <div class="panel-label">Wyświetlacz</div>
+        <div class="panel-label">Display</div>
         <div class="digital">
           <div class="digital-top">
-            <span>Aktualne piętro</span>
-            <span class="direction" id="directionText">• bez ruchu</span>
+            <span>Current floor</span>
+            <span class="direction" id="directionText">• idle</span>
           </div>
           <div class="digital-floor" id="digitalFloor">1</div>
         </div>
       </div>
 
       <div>
-        <div class="panel-label">Panel kabiny</div>
+        <div class="panel-label">Cab panel</div>
         <div class="button-grid" id="cabPanel"></div>
       </div>
 
       <div>
-        <div class="panel-label">Sterowanie</div>
+        <div class="panel-label">Controls</div>
         <div class="controls-row" style="margin-bottom:12px;">
-          <button class="door-btn open-now" id="openBtn">Otwórz drzwi</button>
-          <button class="door-btn close-now" id="closeBtn">Zamknij drzwi</button>
+          <button class="door-btn" id="openBtn">Open doors</button>
+          <button class="door-btn" id="closeBtn">Close doors</button>
         </div>
         <div class="toggles">
-          <button class="toggle on" id="adhdBtn">Tryb ADHD</button>
-          <button class="toggle on" id="soundBtn">Dźwięk klików</button>
+          <button class="toggle on" id="adhdBtn">ADHD mode</button>
+          <button class="toggle on" id="soundBtn">Click sound</button>
         </div>
       </div>
 
       <div class="log">
-        <div class="panel-label">Log windy</div>
+        <div class="panel-label">Elevator log</div>
         <div class="log-list" id="logList"></div>
       </div>
     </section>
@@ -576,6 +556,7 @@
   <script>
     const floors = [5, 4, 3, 2, 1];
     const totalFloors = 5;
+
     let currentFloor = 1;
     let targetFloor = null;
     let queue = [];
@@ -621,7 +602,9 @@
       item.className = 'log-item';
       item.textContent = text;
       logList.prepend(item);
-      while (logList.children.length > 8) logList.removeChild(logList.lastChild);
+      while (logList.children.length > 8) {
+        logList.removeChild(logList.lastChild);
+      }
     }
 
     function setDirectionLabel(text) {
@@ -629,20 +612,26 @@
     }
 
     function updateDoorStateUI() {
-      doorPill.textContent = `Drzwi: ${doorsOpen ? 'otwarte' : 'zamknięte'}`;
+      doorPill.textContent = `Doors: ${doorsOpen ? 'open' : 'closed'}`;
     }
 
     function setCarFloor(floor, animated = true) {
       const safeFloor = Math.max(1, Math.min(totalFloors, floor));
       const stepPercent = 100 / totalFloors;
       const translate = -((safeFloor - 1) * stepPercent);
-      if (!animated) car.style.transition = 'none';
-      else car.style.transition = 'transform 1.2s cubic-bezier(.22,1,.36,1)';
+
+      if (!animated) {
+        car.style.transition = 'none';
+      } else {
+        car.style.transition = 'transform 1.2s cubic-bezier(.22,1,.36,1)';
+      }
+
       car.style.transform = `translateY(${translate}%)`;
       currentFloor = safeFloor;
       digitalFloor.textContent = safeFloor;
       carDisplay.textContent = `F${safeFloor}`;
       highlightCurrentFloor();
+
       if (!animated) {
         requestAnimationFrame(() => {
           car.style.transition = 'transform 1.2s cubic-bezier(.22,1,.36,1)';
@@ -652,7 +641,10 @@
 
     function highlightCurrentFloor() {
       document.querySelectorAll('.floor-row').forEach(row => {
-        row.style.background = Number(row.dataset.floor) === currentFloor ? 'rgba(110,200,255,0.08)' : 'transparent';
+        row.style.background =
+          Number(row.dataset.floor) === currentFloor
+            ? 'rgba(110,200,255,0.08)'
+            : 'transparent';
       });
     }
 
@@ -666,6 +658,7 @@
         queueList.appendChild(chip);
         return;
       }
+
       queue.forEach(floor => {
         const chip = document.createElement('div');
         chip.className = 'queue-chip';
@@ -687,7 +680,7 @@
       doorsOpen = true;
       car.classList.add('open');
       updateDoorStateUI();
-      if (manual) addLog(`Otwarto drzwi na piętrze ${currentFloor}`);
+      if (manual) addLog(`Opened doors on floor ${currentFloor}`);
       beep(720, 0.05, 'triangle', 0.02);
       beep(860, 0.07, 'triangle', 0.018);
       doorTimer = setTimeout(() => {
@@ -700,27 +693,19 @@
       doorsOpen = false;
       car.classList.remove('open');
       updateDoorStateUI();
-      if (manual) addLog(`Zamknięto drzwi na piętrze ${currentFloor}`);
+      if (manual) addLog(`Closed doors on floor ${currentFloor}`);
       beep(480, 0.05, 'triangle', 0.02);
       beep(360, 0.06, 'triangle', 0.016);
     }
 
-    function sortQueue() {
-      if (queue.length <= 1) return;
-      if (targetFloor === null) return;
-      const goingUp = targetFloor > currentFloor;
-      const unique = [...new Set(queue)];
-      unique.sort((a, b) => goingUp ? a - b : b - a);
-      queue = unique;
-    }
-
     function callElevator(floor, type = 'cab') {
       if (floor < 1 || floor > totalFloors) return;
+
       beep(adhdMode ? 840 : 620, 0.04, 'sine', adhdMode ? 0.03 : 0.02);
 
       if (floor === currentFloor && !isMoving) {
         activateButton(type, floor, true);
-        addLog(`Piętro ${floor}: winda już tutaj`);
+        addLog(`Floor ${floor}: elevator is already here`);
         openDoors();
         setTimeout(() => activateButton(type, floor, false), 700);
         return;
@@ -728,12 +713,11 @@
 
       if (!queue.includes(floor) && floor !== targetFloor) {
         queue.push(floor);
-        addLog(`Dodano piętro ${floor} do kolejki`);
+        addLog(`Added floor ${floor} to queue`);
       }
 
       activateButton(type, floor, true);
       renderQueue();
-      sortQueue();
       processQueue();
     }
 
@@ -760,6 +744,7 @@
 
       isMoving = true;
       car.classList.add('moving');
+
       const direction = safeTarget > startFloor ? '↑ going up' : '↓ going down';
       setDirectionLabel(direction);
       addLog(`Going to floor ${safeTarget}`);
@@ -803,7 +788,9 @@
         beep(950, 0.06, 'triangle', 0.024);
         openDoors(false);
         targetFloor = null;
-        setTimeout(processQueue, adhdMo
+        setTimeout(processQueue, adhdMode ? 700 : 1100);
+      }, duration + 60);
+    }
 
     function createFloorRows() {
       floors.forEach(floor => {
@@ -813,11 +800,11 @@
 
         const label = document.createElement('div');
         label.className = 'floor-label';
-        label.textContent = `P${floor}`;
+        label.textContent = `F${floor}`;
 
         const btn = document.createElement('button');
         btn.className = 'hall-btn';
-        btn.innerHTML = floor;
+        btn.textContent = floor;
         btn.addEventListener('click', () => callElevator(floor, 'hall'));
 
         row.appendChild(label);
@@ -831,7 +818,7 @@
       floors.forEach(floor => {
         const btn = document.createElement('button');
         btn.className = 'cab-btn';
-        btn.innerHTML = `<div class="cab-floor">${floor}</div><div class="cab-sub">piętro</div>`;
+        btn.innerHTML = `<div class="cab-floor">${floor}</div><div class="cab-sub">floor</div>`;
         btn.addEventListener('click', () => callElevator(floor, 'cab'));
         cabPanel.appendChild(btn);
         activeButtons.set(`cab-${floor}`, btn);
@@ -844,15 +831,15 @@
     adhdBtn.addEventListener('click', () => {
       adhdMode = !adhdMode;
       adhdBtn.classList.toggle('on', adhdMode);
-      modePill.textContent = `Tryb: ${adhdMode ? 'ADHD' : 'normal'}`;
-      addLog(`Tryb ${adhdMode ? 'ADHD' : 'normal'} ${adhdMode ? 'włączony' : 'wyłączony'}`);
+      modePill.textContent = `Mode: ${adhdMode ? 'ADHD' : 'normal'}`;
+      addLog(`ADHD mode ${adhdMode ? 'enabled' : 'disabled'}`);
       beep(adhdMode ? 980 : 540, 0.05, 'sawtooth', 0.018);
     });
 
     soundBtn.addEventListener('click', () => {
       soundOn = !soundOn;
       soundBtn.classList.toggle('on', soundOn);
-      soundPill.textContent = `Dźwięk: ${soundOn ? 'on' : 'off'}`;
+      soundPill.textContent = `Sound: ${soundOn ? 'on' : 'off'}`;
       if (soundOn) beep(640, 0.05, 'sine', 0.02);
     });
 
@@ -862,8 +849,8 @@
     renderQueue();
     updateDoorStateUI();
     highlightCurrentFloor();
-    addLog('System windy gotowy');
-    addLog('Kliknij przycisk piętra, żeby ruszyć');
+    addLog('Elevator system ready');
+    addLog('Press a floor button to start');
   </script>
 </body>
 </html>
