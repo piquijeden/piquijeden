@@ -3,21 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Janusz łapie promocje</title>
+  <title>Pierbonka</title>
   <style>
     :root {
       --bg: #0d0d0d;
       --panel: #161616;
-      --panel-2: #1d1d1d;
       --text: #f5f5f5;
       --muted: #b9b9b9;
       --line: #2a2a2a;
-      --green: #7fd36b;
-      --red: #ff8a8a;
-      --blue: #8ab4ff;
     }
 
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
 
     html, body {
       margin: 0;
@@ -73,7 +72,7 @@
 
     canvas {
       width: 100%;
-      height: auto;
+      height: 420px;
       display: block;
       background: #f5f1e8;
     }
@@ -100,7 +99,9 @@
       user-select: none;
     }
 
-    .touch-btn:active { transform: scale(0.98); }
+    .touch-btn:active {
+      transform: scale(0.98);
+    }
 
     .center-actions {
       display: flex;
@@ -119,9 +120,12 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.06em;
+      cursor: pointer;
     }
 
-    .small-btn:active { transform: scale(0.98); }
+    .small-btn:active {
+      transform: scale(0.98);
+    }
 
     .help {
       text-align: center;
@@ -134,14 +138,23 @@
     }
 
     @media (max-width: 640px) {
-      body { padding: 8px; }
+      body {
+        padding: 8px;
+      }
+
+      canvas {
+        height: 360px;
+      }
+
       .touch-controls {
         grid-template-columns: 1fr 1fr;
       }
+
       .center-actions {
         grid-column: 1 / -1;
         order: -1;
       }
+
       .touch-btn {
         min-height: 64px;
         font-size: 26px;
@@ -150,7 +163,7 @@
   </style>
 </head>
 <body>
-  <h1>Janusz łapie promocje</h1>
+  <h1>Cel: Łap promki z Januszem</h1>
 
   <div class="hud">
     <div id="score">Punkty: 0</div>
@@ -181,470 +194,512 @@
   <audio id="bgm" src="muzyka.mp3" loop></audio>
 
   <script>
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
-    const scoreEl = document.getElementById('score');
-    const livesEl = document.getElementById('lives');
-    const speedEl = document.getElementById('speed');
-    const bgm = document.getElementById('bgm');
+    window.addEventListener('load', () => {
+      const canvas = document.getElementById('game');
+      const ctx = canvas.getContext('2d');
 
-    const leftBtn = document.getElementById('leftBtn');
-    const rightBtn = document.getElementById('rightBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
-    const restartBtn = document.getElementById('restartBtn');
-    const homeBtn = document.getElementById('homeBtn');
+      const scoreEl = document.getElementById('score');
+      const livesEl = document.getElementById('lives');
+      const speedEl = document.getElementById('speed');
+      const bgm = document.getElementById('bgm');
 
-    const W = 800;
-    const H = 550;
+      const leftBtn = document.getElementById('leftBtn');
+      const rightBtn = document.getElementById('rightBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const restartBtn = document.getElementById('restartBtn');
+      const homeBtn = document.getElementById('homeBtn');
 
-    let score = 0;
-    let lives = 3;
-    let paused = false;
-    let gameOver = false;
-    let draggingSlider = false;
+      const W = 800;
+      const H = 550;
 
-    const keys = { left: false, right: false };
+      let score = 0;
+      let lives = 3;
+      let paused = false;
+      let gameOver = false;
+      let draggingSlider = false;
 
-    const janusz = {
-      x: 360,
-      y: H - 220,
-      speed: 7,
-      basketOffsetX: 55,
-      basketOffsetY: 110,
-      basketWidth: 150,
-      basketHeight: 38
-    };
+      const keys = { left: false, right: false };
+
+      const janusz = {
+        x: 360,
+        y: H - 220,
+        speed: 7,
+        basketOffsetX: 55,
+        basketOffsetY: 110,
+        basketWidth: 150,
+        basketHeight: 38
+      };
 
     const products = [
-      { name: 'Chleb', color: '#d9a55a' },
-      { name: 'Mleko', color: '#bfe3ff' },
-      { name: 'Ser', color: '#ffd95e' },
-      { name: 'Cebula', color: '#f3e04f' },
-      { name: 'Wódka', color: '#ff9b3d' },
-      { name: 'Parówki', color: '#de6b6b' },
-      { name: 'Czteropak', color: '#7ccf6a' },
-      { name: 'Masło', color: '#fff2a8' }
-    ];
+      { name: "Chleb", color: "#d9a55a" },
+      { name: "Mleko", color: "#bfe3ff" },
+      { name: "Ser", color: "#ffd95e" },
+      { name: "Cebula", color: "#f3e04f" },
+      { name: "Wódka", color: "#ff9b3d" },
+      { name: "Parówki", color: "#de6b6b" },
+      { name: "Czteropak", color: "#7ccf6a" },
+      { name: "Masło", color: "#fff2a8" }
+      ];
 
-    let fallSpeed = 2;
-    let product = null;
+      let fallSpeed = 2;
+      let product = null;
 
-    const pauseButtons = {
-      continue: { x: 290, y: 235, w: 220, h: 50 },
-      restart: { x: 290, y: 305, w: 220, h: 50 },
-      home: { x: 290, y: 375, w: 220, h: 50 },
-      slider: { x: 250, y: 470, w: 300, h: 8, handleR: 12 }
-    };
-
-    let volume = 0.5;
-    bgm.volume = volume;
-
-    function updateHud() {
-      scoreEl.textContent = `Punkty: ${score}`;
-      livesEl.textContent = `Życia: ${lives}`;
-      speedEl.textContent = `Tempo: ${Math.max(1, (fallSpeed / 3.1)).toFixed(1)}x`;
-    }
-
-    function spawnProduct() {
-      const item = products[Math.floor(Math.random() * products.length)];
-      product = {
-        x: Math.random() * (W - 52),
-        y: 120,
-        size: 52,
-        name: item.name,
-        color: item.color
+      const pauseButtons = {
+        continue: { x: 290, y: 235, w: 220, h: 50 },
+        restart: { x: 290, y: 305, w: 220, h: 50 },
+        home: { x: 290, y: 375, w: 220, h: 50 },
+        slider: { x: 250, y: 470, w: 300, h: 8, handleR: 12 }
       };
-    }
 
-    function getBasketRect() {
-      return {
-        x: janusz.x + janusz.basketOffsetX,
-        y: janusz.y + janusz.basketOffsetY,
-        w: janusz.basketWidth,
-        h: janusz.basketHeight
-      };
-    }
+      let volume = 0.5;
+      bgm.volume = volume;
 
-    function intersects(a, b) {
-      return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-    }
+      function updateHud() {
+        scoreEl.textContent = `Punkty: ${score}`;
+        livesEl.textContent = `Życia: ${lives}`;
+        speedEl.textContent = `Tempo: ${Math.max(1, (fallSpeed / 3.1)).toFixed(1)}x`;
+      }
 
-    function resetGame() {
-      score = 0;
-      lives = 3;
-      paused = false;
-      gameOver = false;
-      fallSpeed = 2;
-      janusz.x = 360;
-      spawnProduct();
-      updateHud();
-    }
+      function spawnProduct() {
+        const item = products[Math.floor(Math.random() * products.length)];
+        product = {
+          x: Math.random() * (W - 52),
+          y: 120,
+          size: 52,
+          name: item.name,
+          color: item.color
+        };
+      }
 
-    function update() {
-      if (!paused && !gameOver) {
-        if (keys.left) janusz.x -= janusz.speed;
-        if (keys.right) janusz.x += janusz.speed;
+      function getBasketRect() {
+        return {
+          x: janusz.x + janusz.basketOffsetX,
+          y: janusz.y + janusz.basketOffsetY,
+          w: janusz.basketWidth,
+          h: janusz.basketHeight
+        };
+      }
 
-        const minX = -85;
-        const maxX = W - janusz.basketWidth - 55;
-        janusz.x = Math.max(minX, Math.min(maxX, janusz.x));
+      function intersects(a, b) {
+        return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+      }
 
-        if (product) {
-          product.y += fallSpeed;
+      function resetGame() {
+        score = 0;
+        lives = 3;
+        paused = false;
+        gameOver = false;
+        fallSpeed = 2;
+        janusz.x = 360;
+        spawnProduct();
+        updateHud();
+      }
 
-          const p = { x: product.x, y: product.y, w: product.size, h: product.size };
-          const b = getBasketRect();
+      function update() {
+        if (!paused && !gameOver) {
+          if (keys.left) janusz.x -= janusz.speed;
+          if (keys.right) janusz.x += janusz.speed;
 
-          if (intersects(p, b)) {
-            score++;
-            if (score % 5 === 0) fallSpeed += 0.12;
-            spawnProduct();
-            updateHud();
-          } else if (product.y > H) {
-            lives--;
-            updateHud();
-            if (lives <= 0) {
-              gameOver = true;
-            } else {
+          const minX = -85;
+          const maxX = W - janusz.basketWidth - 55;
+          janusz.x = Math.max(minX, Math.min(maxX, janusz.x));
+
+          if (product) {
+            product.y += fallSpeed;
+
+            const p = { x: product.x, y: product.y, w: product.size, h: product.size };
+            const b = getBasketRect();
+
+            if (intersects(p, b)) {
+              score++;
+              if (score % 5 === 0) fallSpeed += 0.12;
               spawnProduct();
+              updateHud();
+            } else if (product.y > H) {
+              lives--;
+              updateHud();
+
+              if (lives <= 0) {
+                gameOver = true;
+              } else {
+                spawnProduct();
+              }
             }
           }
         }
       }
-    }
 
-    function drawBackground() {
-      ctx.fillStyle = '#f5f1e8';
-      ctx.fillRect(0, 0, W, H);
+      function drawBackground() {
+        ctx.fillStyle = '#f5f1e8';
+        ctx.fillRect(0, 0, W, H);
 
-      ctx.fillStyle = '#d8d8d8';
-      ctx.fillRect(0, H - 120, W, 120);
+        ctx.fillStyle = '#d8d8d8';
+        ctx.fillRect(0, H - 120, W, 120);
 
-      const shelfW = W / 4;
-      const shelves = [
-        { x: 40, color: '#ffe14d', text: 'PROMOCJE' },
-        { x: 80 + shelfW, color: '#ff5757', text: 'NABIAŁ' },
-        { x: 120 + shelfW * 2, color: '#7fd36b', text: 'ALKOHOLE' }
-      ];
+        const shelfW = W / 4;
+        const shelves = [
+          { x: 40, color: '#ffe14d', text: 'PROMOCJE' },
+          { x: 80 + shelfW, color: '#ff5757', text: 'NABIAŁ' },
+          { x: 120 + shelfW * 2, color: '#7fd36b', text: 'ALKOHOLE' }
+        ];
 
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = '#333';
-      ctx.font = 'bold 20px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#333';
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
 
-      for (const s of shelves) {
-        ctx.fillStyle = s.color;
-        ctx.fillRect(s.x, 70, shelfW, 100);
-        ctx.strokeRect(s.x, 70, shelfW, 100);
-        ctx.fillStyle = '#111';
-        ctx.fillText(s.text, s.x + shelfW / 2, 120);
+        for (const s of shelves) {
+          ctx.fillStyle = s.color;
+          ctx.fillRect(s.x, 70, shelfW, 100);
+          ctx.strokeRect(s.x, 70, shelfW, 100);
+          ctx.fillStyle = '#111';
+          ctx.fillText(s.text, s.x + shelfW / 2, 120);
+        }
       }
-    }
 
-    function drawJanusz() {
-      const x = janusz.x;
-      const y = janusz.y;
+      function drawJanusz() {
+        const x = janusz.x;
+        const y = janusz.y;
 
-      ctx.strokeStyle = 'black';
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.moveTo(x - 20, y + 150);
-      ctx.lineTo(x - 25, y + 190);
-      ctx.moveTo(x + 20, y + 150);
-      ctx.lineTo(x + 25, y + 190);
-      ctx.stroke();
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 5;
 
-      ctx.fillStyle = '#4d83ff';
-      ctx.lineWidth = 2;
-      ctx.fillRect(x - 40, y + 70, 80, 80);
-      ctx.strokeRect(x - 40, y + 70, 80, 80);
-
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.moveTo(x - 40, y + 85);
-      ctx.lineTo(x - 80, y + 110);
-      ctx.moveTo(x + 40, y + 85);
-      ctx.lineTo(x + 70, y + 110);
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.lineWidth = 2;
-      ctx.fillStyle = '#f0c9a0';
-      ctx.arc(x, y + 35, 35, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = 'black';
-      ctx.beginPath();
-      ctx.arc(x - 14, y + 26, 4, 0, Math.PI * 2);
-      ctx.arc(x + 14, y + 26, 4, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#d8a98d';
-      ctx.beginPath();
-      ctx.ellipse(x + 18, y + 37, 13, 9, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.arc(x - 6, y + 46, 16, 0, Math.PI, false);
-      ctx.stroke();
-
-      const bx = x + janusz.basketOffsetX;
-      const by = y + janusz.basketOffsetY;
-      const bw = janusz.basketWidth;
-      const bh = janusz.basketHeight;
-
-      ctx.fillStyle = '#9c6736';
-      ctx.fillRect(bx, by, bw, bh);
-      ctx.strokeRect(bx, by, bw, bh);
-
-      ctx.beginPath();
-      ctx.arc(bx + bw / 2, by + 2, bw / 2 - 18, Math.PI, 0, false);
-      ctx.stroke();
-
-      for (let i = 1; i < 6; i++) {
-        const lx = bx + i * (bw / 6);
         ctx.beginPath();
-        ctx.moveTo(lx, by + 3);
-        ctx.lineTo(lx, by + bh - 3);
+        ctx.moveTo(x - 20, y + 150);
+        ctx.lineTo(x - 25, y + 190);
+        ctx.moveTo(x + 20, y + 150);
+        ctx.lineTo(x + 25, y + 190);
+        ctx.stroke();
+
+        ctx.fillStyle = '#4d83ff';
+        ctx.lineWidth = 2;
+        ctx.fillRect(x - 40, y + 70, 80, 80);
+        ctx.strokeRect(x - 40, y + 70, 80, 80);
+
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(x - 40, y + 85);
+        ctx.lineTo(x - 80, y + 110);
+        ctx.moveTo(x + 40, y + 85);
+        ctx.lineTo(x + 70, y + 110);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.lineWidth = 2;
+        ctx.fillStyle = '#f0c9a0';
+        ctx.arc(x, y + 35, 35, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = 'black';
+        ctx.beginPath();
+        ctx.arc(x - 14, y + 26, 4, 0, Math.PI * 2);
+        ctx.arc(x + 14, y + 26, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#d8a98d';
+        ctx.beginPath();
+        ctx.ellipse(x + 18, y + 37, 13, 9, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(x - 6, y + 46, 16, 0, Math.PI, false);
+        ctx.stroke();
+
+        const bx = x + janusz.basketOffsetX;
+        const by = y + janusz.basketOffsetY;
+        const bw = janusz.basketWidth;
+        const bh = janusz.basketHeight;
+
+        ctx.fillStyle = '#9c6736';
+        ctx.fillRect(bx, by, bw, bh);
+        ctx.strokeRect(bx, by, bw, bh);
+
+        ctx.beginPath();
+        ctx.arc(bx + bw / 2, by + 2, bw / 2 - 18, Math.PI, 0, false);
+        ctx.stroke();
+
+        for (let i = 1; i < 6; i++) {
+          const lx = bx + i * (bw / 6);
+          ctx.beginPath();
+          ctx.moveTo(lx, by + 3);
+          ctx.lineTo(lx, by + bh - 3);
+          ctx.stroke();
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(bx + 5, by + 12);
+        ctx.lineTo(bx + bw - 5, by + 12);
+        ctx.moveTo(bx + 5, by + 25);
+        ctx.lineTo(bx + bw - 5, by + 25);
         ctx.stroke();
       }
 
-      ctx.beginPath();
-      ctx.moveTo(bx + 5, by + 12);
-      ctx.lineTo(bx + bw - 5, by + 12);
-      ctx.moveTo(bx + 5, by + 25);
-      ctx.lineTo(bx + bw - 5, by + 25);
-      ctx.stroke();
-    }
+      function wrapText(text, x, y, maxWidth, lineHeight) {
+        const words = text.split(' ');
+        let line = '';
+        let lines = [];
 
-    function drawProduct() {
-      if (!product) return;
-      ctx.fillStyle = product.color;
-      ctx.fillRect(product.x, product.y, product.size, product.size);
-      ctx.strokeStyle = 'black';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(product.x, product.y, product.size, product.size);
-      ctx.fillStyle = '#111';
-      ctx.font = 'bold 9px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      wrapText(product.name, product.x + product.size / 2, product.y + product.size / 2, product.size - 8, 10);
-    }
+        for (let i = 0; i < words.length; i++) {
+          const testLine = line + words[i] + ' ';
+          if (ctx.measureText(testLine).width > maxWidth && i > 0) {
+            lines.push(line.trim());
+            line = words[i] + ' ';
+          } else {
+            line = testLine;
+          }
+        }
 
-    function wrapText(text, x, y, maxWidth, lineHeight) {
-      const words = text.split(' ');
-      let line = '';
-      let lines = [];
-      for (let i = 0; i < words.length; i++) {
-        const testLine = line + words[i] + ' ';
-        if (ctx.measureText(testLine).width > maxWidth && i > 0) {
-          lines.push(line.trim());
-          line = words[i] + ' ';
-        } else {
-          line = testLine;
+        lines.push(line.trim());
+
+        const startY = y - ((lines.length - 1) * lineHeight) / 2;
+        lines.forEach((ln, i) => ctx.fillText(ln, x, startY + i * lineHeight));
+      }
+
+      function drawProduct() {
+        if (!product) return;
+
+        ctx.fillStyle = product.color;
+        ctx.fillRect(product.x, product.y, product.size, product.size);
+
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(product.x, product.y, product.size, product.size);
+
+        ctx.fillStyle = '#111';
+        ctx.font = 'bold 9px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        wrapText(product.name, product.x + product.size / 2, product.y + product.size / 2, product.size - 8, 10);
+      }
+
+      function drawButton(btn, color, text) {
+        ctx.fillStyle = color;
+        ctx.fillRect(btn.x, btn.y, btn.w, btn.h);
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(btn.x, btn.y, btn.w, btn.h);
+        ctx.fillStyle = 'black';
+        ctx.font = 'bold 18px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, btn.x + btn.w / 2, btn.y + btn.h / 2);
+      }
+
+      function drawPauseMenu() {
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        ctx.fillRect(0, 0, W, H);
+
+        ctx.fillStyle = 'white';
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 3;
+        ctx.fillRect(W / 2 - 185, H / 2 - 150, 370, 360);
+        ctx.strokeRect(W / 2 - 185, H / 2 - 150, 370, 360);
+
+        ctx.fillStyle = 'black';
+        ctx.font = 'bold 28px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('PAUZA', W / 2, H / 2 - 100);
+
+        drawButton(pauseButtons.continue, '#7fd36b', 'Kontynuuj');
+        drawButton(pauseButtons.restart, '#ff8a8a', 'Restart');
+        drawButton(pauseButtons.home, '#8ab4ff', 'Menu');
+
+        ctx.font = 'bold 12px Arial';
+        ctx.fillStyle = 'black';
+        ctx.fillText(`Głośność: ${Math.round(volume * 100)}%`, W / 2, H / 2 + 168);
+
+        const s = pauseButtons.slider;
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(s.x + s.w, s.y);
+        ctx.stroke();
+
+        const handleX = s.x + s.w * volume;
+        ctx.fillStyle = '#2f6fff';
+        ctx.beginPath();
+        ctx.arc(handleX, s.y, s.handleR, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#111';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      function drawGameOver() {
+        ctx.fillStyle = 'white';
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 3;
+        ctx.fillRect(W / 2 - 220, H / 2 - 100, 440, 200);
+        ctx.strokeRect(W / 2 - 220, H / 2 - 100, 440, 200);
+
+        ctx.fillStyle = 'red';
+        ctx.font = 'bold 28px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('KONIEC GRY', W / 2, H / 2 - 35);
+
+        ctx.fillStyle = 'black';
+        ctx.font = 'bold 20px Arial';
+        ctx.fillText(`Twój wynik: ${score}`, W / 2, H / 2 + 5);
+
+        ctx.font = '16px Arial';
+        ctx.fillText('Naciśnij restart, aby zagrać ponownie', W / 2, H / 2 + 45);
+      }
+
+      function draw() {
+        drawBackground();
+        drawJanusz();
+        drawProduct();
+
+        if (gameOver) drawGameOver();
+        if (paused && !gameOver) drawPauseMenu();
+      }
+
+      function loop() {
+        update();
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      function inside(mx, my, rect) {
+        return mx >= rect.x && mx <= rect.x + rect.w && my >= rect.y && my <= rect.y + rect.h;
+      }
+
+      function setVolumeFromMouse(mx) {
+        const s = pauseButtons.slider;
+        volume = (mx - s.x) / s.w;
+        volume = Math.max(0, Math.min(1, volume));
+        bgm.volume = volume;
+      }
+
+      function tryStartMusic() {
+        bgm.play().catch(() => {});
+      }
+
+      function pointerToCanvasPosition(clientX, clientY) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: (clientX - rect.left) * (canvas.width / rect.width),
+          y: (clientY - rect.top) * (canvas.height / rect.height)
+        };
+      }
+
+      function handleCanvasPress(clientX, clientY) {
+        const { x: mx, y: my } = pointerToCanvasPosition(clientX, clientY);
+        tryStartMusic();
+
+        if (!paused) return;
+
+        if (inside(mx, my, pauseButtons.continue)) {
+          paused = false;
+          return;
+        }
+
+        if (inside(mx, my, pauseButtons.restart)) {
+          resetGame();
+          return;
+        }
+
+        if (inside(mx, my, pauseButtons.home)) {
+          window.location.href = 'https://piq.lol';
+          return;
+        }
+
+        const s = pauseButtons.slider;
+        const handleX = s.x + s.w * volume;
+        const dx = mx - handleX;
+        const dy = my - s.y;
+
+        if (
+          Math.sqrt(dx * dx + dy * dy) <= s.handleR + 8 ||
+          (mx >= s.x && mx <= s.x + s.w && my >= s.y - 14 && my <= s.y + 14)
+        ) {
+          draggingSlider = true;
+          setVolumeFromMouse(mx);
         }
       }
-      lines.push(line.trim());
-      const startY = y - ((lines.length - 1) * lineHeight) / 2;
-      lines.forEach((ln, i) => ctx.fillText(ln, x, startY + i * lineHeight));
-    }
 
-    function drawButton(btn, color, text) {
-      ctx.fillStyle = color;
-      ctx.fillRect(btn.x, btn.y, btn.w, btn.h);
-      ctx.strokeStyle = 'black';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(btn.x, btn.y, btn.w, btn.h);
-      ctx.fillStyle = 'black';
-      ctx.font = 'bold 18px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(text, btn.x + btn.w / 2, btn.y + btn.h / 2);
-    }
-
-    function drawPauseMenu() {
-      ctx.fillStyle = 'rgba(0,0,0,0.45)';
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.fillStyle = 'white';
-      ctx.strokeStyle = 'black';
-      ctx.lineWidth = 3;
-      ctx.fillRect(W / 2 - 185, H / 2 - 150, 370, 360);
-      ctx.strokeRect(W / 2 - 185, H / 2 - 150, 370, 360);
-
-      ctx.fillStyle = 'black';
-      ctx.font = 'bold 28px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('PAUZA', W / 2, H / 2 - 100);
-
-      drawButton(pauseButtons.continue, '#7fd36b', 'Kontynuuj');
-      drawButton(pauseButtons.restart, '#ff8a8a', 'Restart');
-      drawButton(pauseButtons.home, '#8ab4ff', 'Menu');
-
-      ctx.font = 'bold 12px Arial';
-      ctx.fillStyle = 'black';
-      ctx.fillText(`Głośność: ${Math.round(volume * 100)}%`, W / 2, H / 2 + 168);
-
-      const s = pauseButtons.slider;
-      ctx.strokeStyle = '#666';
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.moveTo(s.x, s.y);
-      ctx.lineTo(s.x + s.w, s.y);
-      ctx.stroke();
-
-      const handleX = s.x + s.w * volume;
-      ctx.fillStyle = '#2f6fff';
-      ctx.beginPath();
-      ctx.arc(handleX, s.y, s.handleR, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#111';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-
-    function drawGameOver() {
-      ctx.fillStyle = 'white';
-      ctx.strokeStyle = 'black';
-      ctx.lineWidth = 3;
-      ctx.fillRect(W / 2 - 220, H / 2 - 100, 440, 200);
-      ctx.strokeRect(W / 2 - 220, H / 2 - 100, 440, 200);
-      ctx.fillStyle = 'red';
-      ctx.font = 'bold 28px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('KONIEC GRY', W / 2, H / 2 - 35);
-      ctx.fillStyle = 'black';
-      ctx.font = 'bold 20px Arial';
-      ctx.fillText(`Twój wynik: ${score}`, W / 2, H / 2 + 5);
-      ctx.font = '16px Arial';
-      ctx.fillText('Naciśnij restart, aby zagrać ponownie', W / 2, H / 2 + 45);
-    }
-
-    function draw() {
-      drawBackground();
-      drawJanusz();
-      drawProduct();
-      if (gameOver) drawGameOver();
-      if (paused && !gameOver) drawPauseMenu();
-    }
-
-    function loop() {
-      update();
-      draw();
-      requestAnimationFrame(loop);
-    }
-
-    function inside(mx, my, rect) {
-      return mx >= rect.x && mx <= rect.x + rect.w && my >= rect.y && my <= rect.y + rect.h;
-    }
-
-    function setVolumeFromMouse(mx) {
-      const s = pauseButtons.slider;
-      volume = (mx - s.x) / s.w;
-      volume = Math.max(0, Math.min(1, volume));
-      bgm.volume = volume;
-    }
-
-    function tryStartMusic() {
-      bgm.play().catch(() => {});
-    }
-
-    function pointerToCanvasPosition(clientX, clientY) {
-      const rect = canvas.getBoundingClientRect();
-      return {
-        x: (clientX - rect.left) * (canvas.width / rect.width),
-        y: (clientY - rect.top) * (canvas.height / rect.height)
-      };
-    }
-
-    function handleCanvasPress(clientX, clientY) {
-      const { x: mx, y: my } = pointerToCanvasPosition(clientX, clientY);
-      tryStartMusic();
-      if (!paused) return;
-
-      if (inside(mx, my, pauseButtons.continue)) {
-        paused = false;
-        return;
-      }
-      if (inside(mx, my, pauseButtons.restart)) {
-        resetGame();
-        return;
-      }
-      if (inside(mx, my, pauseButtons.home)) {
-        window.location.href = 'https://piq.lol';
-        return;
-      }
-
-      const s = pauseButtons.slider;
-      const handleX = s.x + s.w * volume;
-      const dx = mx - handleX;
-      const dy = my - s.y;
-      if (Math.sqrt(dx * dx + dy * dy) <= s.handleR + 8 || (mx >= s.x && mx <= s.x + s.w && my >= s.y - 14 && my <= s.y + 14)) {
-        draggingSlider = true;
-        setVolumeFromMouse(mx);
-      }
-    }
-
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft') keys.left = true;
-      if (e.key === 'ArrowRight') keys.right = true;
-      if (e.key === 'Escape' && !gameOver) paused = !paused;
-      if ((e.key === 'r' || e.key === 'R') && gameOver) resetGame();
-      tryStartMusic();
-    });
-
-    window.addEventListener('keyup', (e) => {
-      if (e.key === 'ArrowLeft') keys.left = false;
-      if (e.key === 'ArrowRight') keys.right = false;
-    });
-
-    canvas.addEventListener('mousedown', (e) => handleCanvasPress(e.clientX, e.clientY));
-    canvas.addEventListener('touchstart', (e) => {
-      const t = e.changedTouches[0];
-      handleCanvasPress(t.clientX, t.clientY);
-    }, { passive: true });
-
-    window.addEventListener('mousemove', (e) => {
-      if (!draggingSlider) return;
-      const { x } = pointerToCanvasPosition(e.clientX, e.clientY);
-      setVolumeFromMouse(x);
-    });
-
-    window.addEventListener('touchmove', (e) => {
-      if (!draggingSlider) return;
-      const t = e.changedTouches[0];
-      const { x } = pointerToCanvasPosition(t.clientX, t.clientY);
-      setVolumeFromMouse(x);
-    }, { passive: true });
-
-    window.addEventListener('mouseup', () => draggingSlider = false);
-    window.addEventListener('touchend', () => draggingSlider = false, { passive: true });
-
-    function bindHoldButton(button, direction) {
-      const start = (e) => {
-        e.preventDefault();
-        keys[direction] = true;
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') keys.left = true;
+        if (e.key === 'ArrowRight') keys.right = true;
+        if (e.key === 'Escape' && !gameOver) paused = !paused;
+        if ((e.key === 'r' || e.key === 'R') && gameOver) resetGame();
         tryStartMusic();
-      };
-      const stop = (e) => {
-        if (e) e.preventDefault();
-        keys[direction] = false;
-      };
+      });
 
-      button.addEventListener('mousedown', start);
-      button.addEventListener('touchstart', start, { passive: false });
-      button.addEventListener('mouseup', stop);
-      button.addEventListener('mouseleave', stop);
-      button.addEventListener('touchend', stop, { passive: false });
-      button.addEventListener('touchcancel', stop, { passive: false });
-    }
+      window.addEventListener('keyup', (e) => {
+        if (e.key === 'ArrowLeft') keys.left = false;
+        if (e.key === 'ArrowRight') keys.right = false;
+      });
 
-    bindHoldButton(leftBtn, 'left');
-    bindHoldButton(rightBtn, 'right');
+      canvas.addEventListener('mousedown', (e) => handleCanvasPress(e.clientX, e.clientY));
 
-    pauseBtn.addEventListener('click', () => { paused = !paused; tryStartMusic(); });
-    restartBtn.addEventListener('click', () => { resetGame(); tryStartMusic(); });
-    homeBtn.addEventListener('click', () => { window
+      canvas.addEventListener('touchstart', (e) => {
+        const t = e.changedTouches[0];
+        handleCanvasPress(t.clientX, t.clientY);
+      }, { passive: true });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!draggingSlider) return;
+        const { x } = pointerToCanvasPosition(e.clientX, e.clientY);
+        setVolumeFromMouse(x);
+      });
+
+      window.addEventListener('touchmove', (e) => {
+        if (!draggingSlider) return;
+        const t = e.changedTouches[0];
+        const { x } = pointerToCanvasPosition(t.clientX, t.clientY);
+        setVolumeFromMouse(x);
+      }, { passive: true });
+
+      window.addEventListener('mouseup', () => draggingSlider = false);
+      window.addEventListener('touchend', () => draggingSlider = false, { passive: true });
+
+      function bindHoldButton(button, direction) {
+        const start = (e) => {
+          e.preventDefault();
+          keys[direction] = true;
+          tryStartMusic();
+        };
+
+        const stop = (e) => {
+          if (e) e.preventDefault();
+          keys[direction] = false;
+        };
+
+        button.addEventListener('mousedown', start);
+        button.addEventListener('touchstart', start, { passive: false });
+        button.addEventListener('mouseup', stop);
+        button.addEventListener('mouseleave', stop);
+        button.addEventListener('touchend', stop, { passive: false });
+        button.addEventListener('touchcancel', stop, { passive: false });
+      }
+
+      bindHoldButton(leftBtn, 'left');
+      bindHoldButton(rightBtn, 'right');
+
+      pauseBtn.addEventListener('click', () => {
+        paused = !paused;
+        tryStartMusic();
+      });
+
+      restartBtn.addEventListener('click', () => {
+        resetGame();
+        tryStartMusic();
+      });
+
+      homeBtn.addEventListener('click', () => {
+        window.location.href = 'https://piq.lol';
+      });
+
+      spawnProduct();
+      updateHud();
+      draw();
+      loop();
+    });
+  </script>
+</body>
+</html>
