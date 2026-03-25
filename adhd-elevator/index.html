@@ -1,3 +1,13 @@
+Jasne — tutaj masz cały plik, już z:
+
+* działaniem na telefonach,
+* przewijaniem całej strony przy mniejszych ekranach,
+* zsynchronizowanym `F1/F2/F3...` z animacją,
+* przyciskiem **Back to menu** prowadzącym do `https://piq.lol`.
+
+Zapisz jako `elevator_simulator.html`.
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -155,7 +165,8 @@
     .hall-btn:hover,
     .cab-btn:hover,
     .toggle:hover,
-    .door-btn:hover {
+    .door-btn:hover,
+    .menu-btn:hover {
       box-shadow: 0 0 0 1px rgba(110,200,255,0.35), 0 0 18px rgba(110,200,255,0.22), 0 10px 20px rgba(0,0,0,0.25);
     }
 
@@ -423,7 +434,9 @@
       gap: 12px;
     }
 
-    .door-btn, .toggle {
+    .door-btn,
+    .toggle,
+    .menu-btn {
       height: 62px;
       border-radius: 18px;
       border: 1px solid rgba(255,255,255,0.16);
@@ -435,6 +448,13 @@
       cursor: pointer;
       transition: .16s ease;
       box-shadow: 0 10px 18px rgba(0,0,0,.18);
+    }
+
+    .menu-btn {
+      display: block;
+      text-decoration: none;
+      text-align: center;
+      line-height: 62px;
     }
 
     .toggles {
@@ -645,10 +665,11 @@
           <button class="door-btn" id="openBtn">Open doors</button>
           <button class="door-btn" id="closeBtn">Close doors</button>
         </div>
-        <div class="toggles">
+        <div class="toggles" style="margin-bottom:12px;">
           <button class="toggle on" id="adhdBtn">ADHD mode</button>
           <button class="toggle on" id="soundBtn">Click sound</button>
         </div>
+        <a href="https://piq.lol" class="menu-btn">Back to menu</a>
       </div>
 
       <div class="log">
@@ -977,3 +998,4 @@
   </script>
 </body>
 </html>
+```
