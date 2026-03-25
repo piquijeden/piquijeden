@@ -26,14 +26,15 @@
         radial-gradient(circle at 20% 20%, rgba(110,200,255,0.14), transparent 25%),
         radial-gradient(circle at 80% 15%, rgba(255,207,90,0.10), transparent 20%),
         linear-gradient(160deg, var(--bg1), var(--bg2));
-      display: grid;
-      place-items: center;
-      overflow: hidden;
+      display: block;
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding: 12px;
     }
 
     .app {
       width: min(1600px, calc(100vw - 24px));
-      height: calc(100vh - 24px);
+      min-height: calc(100vh - 24px);
       display: grid;
       grid-template-columns: 1.2fr 0.8fr;
       gap: 18px;
@@ -43,6 +44,7 @@
       border: 1px solid rgba(255,255,255,0.12);
       backdrop-filter: blur(18px);
       box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+      margin: 0 auto;
     }
 
     .left, .right {
@@ -157,7 +159,8 @@
       box-shadow: 0 0 0 1px rgba(110,200,255,0.35), 0 0 18px rgba(110,200,255,0.22), 0 10px 20px rgba(0,0,0,0.25);
     }
 
-    .hall-btn.active, .cab-btn.active {
+    .hall-btn.active,
+    .cab-btn.active {
       color: #0d1118;
       background: radial-gradient(circle at 35% 30%, #fff4cf, var(--accent));
       box-shadow: 0 0 24px rgba(255,207,90,0.45), inset 0 0 12px rgba(255,255,255,0.35);
@@ -175,7 +178,8 @@
       overflow: hidden;
     }
 
-    .rails::before, .rails::after {
+    .rails::before,
+    .rails::after {
       content: "";
       position: absolute;
       top: 0;
@@ -199,7 +203,6 @@
       background: linear-gradient(180deg, #dfe9f5, #9aa8bb);
       border: 1px solid rgba(255,255,255,0.4);
       box-shadow: 0 18px 34px rgba(0,0,0,0.3), inset 0 0 24px rgba(255,255,255,0.24);
-      transition: top 1.2s cubic-bezier(.22,1,.36,1), box-shadow .2s ease;
       overflow: hidden;
       z-index: 3;
     }
@@ -471,36 +474,107 @@
       border: 1px solid rgba(255,255,255,0.06);
     }
 
-    .right::-webkit-scrollbar {
+    .right::-webkit-scrollbar,
+    .log-list::-webkit-scrollbar {
       width: 10px;
     }
 
-    .right::-webkit-scrollbar-track {
+    .right::-webkit-scrollbar-track,
+    .log-list::-webkit-scrollbar-track {
       background: rgba(255,255,255,0.04);
       border-radius: 999px;
     }
 
-    .right::-webkit-scrollbar-thumb {
+    .right::-webkit-scrollbar-thumb,
+    .log-list::-webkit-scrollbar-thumb {
       background: rgba(255,255,255,0.18);
       border-radius: 999px;
     }
 
-    .right::-webkit-scrollbar-thumb:hover {
+    .right::-webkit-scrollbar-thumb:hover,
+    .log-list::-webkit-scrollbar-thumb:hover {
       background: rgba(255,255,255,0.28);
     }
 
     @media (max-width: 920px) {
+      body {
+        padding: 8px;
+      }
+
       .app {
-        height: auto;
+        min-height: auto;
         grid-template-columns: 1fr;
+        width: 100%;
+        padding: 12px;
+        gap: 12px;
+        border-radius: 20px;
       }
 
       .left {
         min-height: 620px;
       }
 
+      .building {
+        grid-template-columns: 1fr;
+      }
+
+      .queue-panel {
+        order: -1;
+      }
+
       .right {
-        max-height: 70vh;
+        max-height: none;
+        overflow: visible;
+        padding: 14px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .header {
+        position: static;
+        padding: 16px 16px 0 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .building {
+        position: static;
+        inset: auto;
+        padding: 12px;
+        grid-template-columns: 1fr;
+      }
+
+      .shaft-wrap {
+        min-height: 520px;
+      }
+
+      .title {
+        font-size: 24px;
+      }
+
+      .status-strip {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .button-grid,
+      .controls-row,
+      .toggles {
+        grid-template-columns: 1fr;
+      }
+
+      .cab-btn {
+        height: 78px;
+      }
+
+      .hall-btn {
+        width: 48px;
+        height: 48px;
+      }
+
+      .queue-panel {
+        padding: 14px;
       }
     }
   </style>
@@ -596,6 +670,7 @@
     let adhdMode = true;
     let soundOn = true;
     let doorTimer = null;
+    let moveAnimationId = null;
 
     const car = document.getElementById('car');
     const shaft = document.getElementById('shaft');
@@ -656,26 +731,13 @@
       return usableHeight - (safeFloor - 1) * step;
     }
 
-    function setCarFloor(floor, animated = true) {
+    function setCarFloor(floor) {
       const safeFloor = Math.max(1, Math.min(totalFloors, floor));
-
-      if (!animated) {
-        car.style.transition = 'none';
-      } else {
-        car.style.transition = 'top 1.2s cubic-bezier(.22,1,.36,1), box-shadow .2s ease';
-      }
-
       car.style.top = `${getCarTopForFloor(safeFloor)}px`;
       currentFloor = safeFloor;
       digitalFloor.textContent = safeFloor;
       carDisplay.textContent = `F${safeFloor}`;
       highlightCurrentFloor();
-
-      if (!animated) {
-        requestAnimationFrame(() => {
-          car.style.transition = 'top 1.2s cubic-bezier(.22,1,.36,1), box-shadow .2s ease';
-        });
-      }
     }
 
     function highlightCurrentFloor() {
@@ -768,6 +830,12 @@
       moveToFloor(targetFloor);
     }
 
+    function easeInOutCubic(t) {
+      return t < 0.5
+        ? 4 * t * t * t
+        : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
     function moveToFloor(floor) {
       const safeTarget = Math.max(1, Math.min(totalFloors, floor));
       const startFloor = currentFloor;
@@ -789,45 +857,56 @@
       addLog(`Going to floor ${safeTarget}`);
 
       const duration = 1400 + distance * 700;
-      car.style.transitionDuration = `${duration}ms`;
-      car.style.top = `${getCarTopForFloor(safeTarget)}px`;
-
-      let displayedFloor = startFloor;
-      digitalFloor.textContent = startFloor;
-      carDisplay.textContent = `F${startFloor}`;
-
+      const startTop = getCarTopForFloor(startFloor);
+      const targetTop = getCarTopForFloor(safeTarget);
+      const startTime = performance.now();
       const step = safeTarget > startFloor ? 1 : -1;
-      const intervalMs = duration / distance;
+      let lastShownFloor = startFloor;
 
-      const floorTicker = setInterval(() => {
-        displayedFloor += step;
-        displayedFloor = Math.max(1, Math.min(totalFloors, displayedFloor));
-        digitalFloor.textContent = displayedFloor;
-        carDisplay.textContent = `F${displayedFloor}`;
-        beep(adhdMode ? 500 + displayedFloor * 30 : 420 + displayedFloor * 20, 0.02, 'square', 0.012);
+      if (moveAnimationId) {
+        cancelAnimationFrame(moveAnimationId);
+      }
 
-        if (displayedFloor === safeTarget) {
-          clearInterval(floorTicker);
+      function animate(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = easeInOutCubic(progress);
+        const currentTopPx = startTop + (targetTop - startTop) * eased;
+        car.style.top = `${currentTopPx}px`;
+
+        const passed = Math.max(0, Math.min(distance, Math.floor(progress * distance)));
+        const displayFloor = Math.max(1, Math.min(totalFloors, startFloor + passed * step));
+
+        if (displayFloor !== lastShownFloor) {
+          lastShownFloor = displayFloor;
+          digitalFloor.textContent = displayFloor;
+          carDisplay.textContent = `F${displayFloor}`;
+          beep(adhdMode ? 500 + displayFloor * 30 : 420 + displayFloor * 20, 0.02, 'square', 0.012);
         }
-      }, intervalMs);
 
-      setTimeout(() => {
-        clearInterval(floorTicker);
-        isMoving = false;
-        car.classList.remove('moving');
-        currentFloor = safeTarget;
-        digitalFloor.textContent = safeTarget;
-        carDisplay.textContent = `F${safeTarget}`;
-        setDirectionLabel('• idle');
-        activateButton('cab', safeTarget, false);
-        activateButton('hall', safeTarget, false);
-        highlightCurrentFloor();
-        addLog(`Arrived at floor ${safeTarget}`);
-        beep(950, 0.06, 'triangle', 0.024);
-        openDoors(false);
-        targetFloor = null;
-        setTimeout(processQueue, adhdMode ? 700 : 1100);
-      }, duration + 60);
+        if (progress < 1) {
+          moveAnimationId = requestAnimationFrame(animate);
+        } else {
+          moveAnimationId = null;
+          isMoving = false;
+          car.classList.remove('moving');
+          currentFloor = safeTarget;
+          car.style.top = `${targetTop}px`;
+          digitalFloor.textContent = safeTarget;
+          carDisplay.textContent = `F${safeTarget}`;
+          setDirectionLabel('• idle');
+          activateButton('cab', safeTarget, false);
+          activateButton('hall', safeTarget, false);
+          highlightCurrentFloor();
+          addLog(`Arrived at floor ${safeTarget}`);
+          beep(950, 0.06, 'triangle', 0.024);
+          openDoors(false);
+          targetFloor = null;
+          setTimeout(processQueue, adhdMode ? 700 : 1100);
+        }
+      }
+
+      moveAnimationId = requestAnimationFrame(animate);
     }
 
     function createFloorRows() {
@@ -882,12 +961,14 @@
     });
 
     window.addEventListener('resize', () => {
-      setCarFloor(currentFloor, false);
+      if (!isMoving) {
+        setCarFloor(currentFloor);
+      }
     });
 
     createFloorRows();
     createCabButtons();
-    setCarFloor(1, false);
+    setCarFloor(1);
     renderQueue();
     updateDoorStateUI();
     highlightCurrentFloor();
