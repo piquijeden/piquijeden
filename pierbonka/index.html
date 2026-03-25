@@ -44,7 +44,7 @@
     <canvas id="game" width="800" height="550"></canvas>
   </div>
   <div class="help">Sterowanie: ← → | ESC - pauza | R - restart</div>
-  <a class="download-btn" href="janusz-biedronka.zip" download>Pobierz grę (.zip)</a>
+  <a class="download-btn" href="pierbonka.zip" download>Pobierz grę w języku python (.zip)</a>
 
   <audio id="bgm" src="muzyka.mp3" loop></audio>
 
@@ -65,14 +65,14 @@
       { name: 'Wódka', color: '#f3e04f' }, { name: 'Czteropak', color: '#ff9b3d' }, { name: 'Parówki', color: '#de6b6b' },
       { name: 'Cebula', color: '#7ccf6a' }, { name: 'Masło', color: '#fff2a8' }
     ];
-    let fallSpeed = 2.8;
+    let fallSpeed = 2;
     let product = null;
     const pauseButtons = {
       continue: { x: 290, y: 255, w: 220, h: 50 },
       restart: { x: 290, y: 330, w: 220, h: 50 },
       slider: { x: 250, y: 420, w: 300, h: 8, handleR: 12 }
     };
-    let volume = 0.5;
+    let volume = 1;
     bgm.volume = volume;
 
     function updateHud() { scoreEl.textContent = `Punkty: ${score}`; livesEl.textContent = `Życia: ${lives}`; }
