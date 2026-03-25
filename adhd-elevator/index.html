@@ -32,8 +32,8 @@
     }
 
     .app {
-      width: min(1100px, calc(100vw - 24px));
-      height: min(740px, calc(100vh - 24px));
+      width: min(1600px, calc(100vw - 24px));
+      height: min(900px, calc(100vh - 24px));
       display: grid;
       grid-template-columns: 1.2fr 0.8fr;
       gap: 18px;
@@ -94,7 +94,7 @@
       position: absolute;
       inset: 74px 18px 18px 18px;
       display: grid;
-      grid-template-columns: 1fr 200px;
+      grid-template-columns: 1fr 220px;
       gap: 18px;
     }
 
@@ -146,7 +146,7 @@
       display: grid;
       place-items: center;
       cursor: pointer;
-      transition: transform 0.12s ease, box-shadow 0.18s ease, background 0.18s ease;
+      transition: box-shadow 0.18s ease, background 0.18s ease;
       box-shadow: inset 0 0 14px rgba(255,255,255,0.03), 0 8px 20px rgba(0,0,0,0.22);
     }
 
@@ -194,12 +194,12 @@
       left: 26px;
       right: 26px;
       height: calc((100% - 56px) / 5);
-      bottom: 14px;
+      top: calc(100% - ((100% - 56px) / 5) - 14px);
       border-radius: 18px;
       background: linear-gradient(180deg, #dfe9f5, #9aa8bb);
       border: 1px solid rgba(255,255,255,0.4);
       box-shadow: 0 18px 34px rgba(0,0,0,0.3), inset 0 0 24px rgba(255,255,255,0.24);
-      transition: transform 1.2s cubic-bezier(.22,1,.36,1), box-shadow .2s ease;
+      transition: top 1.2s cubic-bezier(.22,1,.36,1), box-shadow .2s ease;
       overflow: hidden;
       z-index: 3;
     }
@@ -490,7 +490,7 @@
         <div class="shaft-wrap">
           <div class="sparkles"></div>
           <div class="shaft-grid" id="floorGrid"></div>
-          <div class="shaft rails">
+          <div class="shaft rails" id="shaft">
             <div class="car" id="car">
               <div class="car-top"></div>
               <div class="car-display" id="carDisplay">F1</div>
@@ -567,6 +567,7 @@
     let doorTimer = null;
 
     const car = document.getElementById('car');
+    const shaft = document.getElementById('shaft');
     const digitalFloor = document.getElementById('digitalFloor');
     const directionText = document.getElementById('directionText');
     const floorGrid = document.getElementById('floorGrid');
@@ -615,18 +616,25 @@
       doorPill.textContent = `Doors: ${doorsOpen ? 'open' : 'closed'}`;
     }
 
+    function getCarTopForFloor(floor) {
+      const safeFloor = Math.max(1, Math.min(totalFloors, floor));
+      const shaftHeight = shaft.clientHeight;
+      const carHeight = car.offsetHeight;
+      const usableHeight = shaftHeight - carHeight;
+      const step = usableHeight / (totalFloors - 1);
+      return usableHeight - (safeFloor - 1) * step;
+    }
+
     function setCarFloor(floor, animated = true) {
       const safeFloor = Math.max(1, Math.min(totalFloors, floor));
-      const stepPercent = 100 / totalFloors;
-      const translate = -((safeFloor - 1) * stepPercent);
 
       if (!animated) {
         car.style.transition = 'none';
       } else {
-        car.style.transition = 'transform 1.2s cubic-bezier(.22,1,.36,1)';
+        car.style.transition = 'top 1.2s cubic-bezier(.22,1,.36,1), box-shadow .2s ease';
       }
 
-      car.style.transform = `translateY(${translate}%)`;
+      car.style.top = `${getCarTopForFloor(safeFloor)}px`;
       currentFloor = safeFloor;
       digitalFloor.textContent = safeFloor;
       carDisplay.textContent = `F${safeFloor}`;
@@ -634,7 +642,7 @@
 
       if (!animated) {
         requestAnimationFrame(() => {
-          car.style.transition = 'transform 1.2s cubic-bezier(.22,1,.36,1)';
+          car.style.transition = 'top 1.2s cubic-bezier(.22,1,.36,1), box-shadow .2s ease';
         });
       }
     }
@@ -751,8 +759,7 @@
 
       const duration = 900 + distance * 450;
       car.style.transitionDuration = `${duration}ms`;
-      car.style.transitionTimingFunction = 'cubic-bezier(.22,1,.36,1)';
-      car.style.transform = `translateY(-${((safeTarget - 1) * 100) / totalFloors}%)`;
+      car.style.top = `${getCarTopForFloor(safeTarget)}px`;
 
       let displayedFloor = startFloor;
       digitalFloor.textContent = startFloor;
@@ -841,6 +848,10 @@
       soundBtn.classList.toggle('on', soundOn);
       soundPill.textContent = `Sound: ${soundOn ? 'on' : 'off'}`;
       if (soundOn) beep(640, 0.05, 'sine', 0.02);
+    });
+
+    window.addEventListener('resize', () => {
+      setCarFloor(currentFloor, false);
     });
 
     createFloorRows();
