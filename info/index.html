@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Piq - Info</title>
+  <style>
+    :root {
+      --bg: #050505;
+      --panel: rgba(255,255,255,0.03);
+      --text: #f5f5f5;
+      --muted: rgba(255,255,255,0.58);
+      --soft: rgba(255,255,255,0.1);
+      --line: rgba(255,255,255,0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .bg-noise,
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .bg-noise {
+      opacity: 0.04;
+      background-image: radial-gradient(circle at 20% 20%, #fff 0.5px, transparent 0.6px),
+                        radial-gradient(circle at 80% 30%, #fff 0.5px, transparent 0.6px),
+                        radial-gradient(circle at 40% 70%, #fff 0.5px, transparent 0.6px),
+                        radial-gradient(circle at 70% 80%, #fff 0.5px, transparent 0.6px);
+      background-size: 220px 220px;
+    }
+
+    .stars::before,
+    .stars::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-repeat: no-repeat;
+    }
+
+    .stars::before {
+      background-image:
+        radial-gradient(#fff 0.8px, transparent 1px),
+        radial-gradient(#fff 0.8px, transparent 1px),
+        radial-gradient(#fff 0.8px, transparent 1px),
+        radial-gradient(#fff 0.8px, transparent 1px),
+        radial-gradient(#fff 0.8px, transparent 1px),
+        radial-gradient(#fff 0.8px, transparent 1px);
+      background-size: 6px 6px;
+      background-position: 10% 14%, 22% 31%, 74% 18%, 85% 35%, 14% 77%, 67% 81%;
+      opacity: 0.18;
+    }
+
+    .container {
+      width: min(980px, calc(100% - 40px));
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      z-index: 2;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    nav {
+      display: flex;
+      gap: 18px;
+    }
+
+    header a,
+    .contact-row,
+    .mail-btn {
+      transition: 0.2s ease;
+    }
+
+    header a:hover,
+    .mail-btn:hover {
+      color: var(--text);
+    }
+
+    .hero {
+      padding: 92px 0 72px;
+      display: flex;
+      align-items: center;
+      min-height: 44vh;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: lowercase;
+      color: rgba(255,255,255,0.38);
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: clamp(42px, 8vw, 84px);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      font-weight: 500;
+      max-width: 760px;
+    }
+
+    .lead {
+      margin-top: 22px;
+      max-width: 620px;
+      font-size: 18px;
+      color: var(--muted);
+    }
+
+    .section {
+      border-top: 1px solid var(--line);
+      padding: 34px 0;
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 24px;
+    }
+
+    .section-label {
+      color: rgba(255,255,255,0.38);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 500;
+    }
+
+    .contact-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .contact-row {
+      border-bottom: 1px solid var(--line);
+      padding: 16px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      color: rgba(255,255,255,0.74);
+    }
+
+    .contact-row:hover {
+      color: var(--text);
+      border-color: rgba(255,255,255,0.28);
+      transform: translateX(4px);
+    }
+
+    .contact-row span:last-child {
+      color: rgba(255,255,255,0.92);
+    }
+
+    .info-text p {
+      color: var(--muted);
+      margin-bottom: 14px;
+      max-width: 700px;
+    }
+
+    .mail-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      padding: 12px 16px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: rgba(255,255,255,0.82);
+      background: var(--panel);
+      backdrop-filter: blur(8px);
+    }
+
+    .mail-btn:hover {
+      border-color: rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.05);
+      transform: translateY(-1px);
+    }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      border-top: 1px solid var(--line);
+      padding: 22px 0 28px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.36);
+    }
+
+    @media (max-width: 720px) {
+      .container {
+        width: min(100% - 28px, 980px);
+      }
+
+      header,
+      footer,
+      .contact-row,
+      nav {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .hero {
+        padding: 72px 0 52px;
+      }
+
+      .section {
+        grid-template-columns: 1fr;
+      }
+
+      .contact-row {
+        gap: 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-noise"></div>
+  <div class="stars"></div>
+
+  <div class="container">
+    <header>
+      <a href="#top">piq</a>
+      <nav>
+        <a href="#kontakt">contact</a>
+        <a href="#info">info</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="top">
+        <div>
+          <div class="eyebrow">Contact / Info</div>
+          <h1>My name is piq.</h1>
+          <p class="lead">
+          </p>
+        </div>
+      </section>
+
+      <section class="section" id="kontakt">
+        <div>
+          <div class="section-label">01</div>
+          <div class="section-title">Contact</div>
+        </div>
+
+        <div class="contact-list">
+          <a class="contact-row" href="https://discord.com/app" target="_blank" rel="noopener noreferrer">
+            <span>Discord</span>
+            <span>1piq →</span>
+          </a>
+          <a class="contact-row" href="https://www.instagram.com/fuckasspidor" target="_blank" rel="noopener noreferrer">
+            <span>Instagram</span>
+            <span>@fuckasspidor →</span>
+          </a>
+          <a class="contact-row" href="https://github.com/piquijeden" target="_blank" rel="noopener noreferrer">
+            <span>GitHub</span>
+            <span>github.com/piquijeden →</span>
+          </a>
+          <a class="contact-row" href="mailto:twojmail@example.com">
+            <span>E-mail</span>
+            <span>piquijeden@gmail.com →</span>
+          </a>
+        </div>
+      </section>
+
+      <section class="section" id="info">
+        <div>
+          <div class="section-label">02</div>
+          <div class="section-title">Info</div>
+        </div>
+
+        <div class="info-text">
+          <p>
+            I make games, sometimes on my own, sometimes using chat gpt.
+          </p>
+          <a class="mail-btn" href="piquijeden@gmail.com">Write a e-mail to me →</a>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
