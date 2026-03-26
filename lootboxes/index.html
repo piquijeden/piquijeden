@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Piqui Lootboxes</title>
+  <style>
+    :root {
+      --bg: #050505;
+      --bg2: #0d0d0d;
+      --panel: rgba(255,255,255,0.03);
+      --text: #f5f5f5;
+      --muted: #b0b0b0;
+      --border: rgba(255,255,255,0.08);
+      --gold: #d4af37;
+      --gold-soft: rgba(212,175,55,0.18);
+      --red: #dc2626;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --green: #16a34a;
+      --shadow: 0 18px 40px rgba(0,0,0,0.42);
+      --glow: 0 0 22px rgba(212,175,55,0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, rgba(212,175,55,0.08), transparent 28%),
+        radial-gradient(circle at bottom, rgba(139,92,246,0.05), transparent 30%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app {
+      width: min(1240px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: var(--shadow), var(--glow);
+      backdrop-filter: blur(10px);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 18px 22px;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 2vw, 2.4rem);
+      letter-spacing: 0.03em;
+    }
+
+    .brand p {
+      margin: 6px 0 0;
+      color: var(--muted);
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .wrap {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+    }
+
+    .main, .side { padding: 24px; }
+
+    .side {
+      border-left: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      font-size: 1.08rem;
+      color: #fef3c7;
+    }
+
+    .case-shell {
+      background:
+        radial-gradient(circle at top, rgba(212,175,55,0.12), transparent 28%),
+        linear-gradient(180deg, #161616, #0e0e0e);
+      border: 1px solid rgba(212,175,55,0.28);
+      border-radius: 30px;
+      padding: 22px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.04) inset, 0 20px 48px rgba(0,0,0,0.45), 0 0 24px rgba(212,175,55,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .case-shell::before {
+      content: "";
+      position: absolute;
+      inset: -30%;
+      background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,0.05) 50%, transparent 60%);
+      transform: translateX(-100%) rotate(8deg);
+      animation: shine 10s linear infinite;
+      pointer-events: none;
+    }
+
+    .case-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .case-title {
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #fef3c7;
+      text-shadow: 0 0 14px rgba(212,175,55,0.15);
+    }
+
+    .case-price {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(212,175,55,0.08);
+      border: 1px solid rgba(212,175,55,0.22);
+      color: #fde68a;
+      font-weight: 800;
+    }
+
+    .roll-wrap {
+      position: relative;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 24px;
+      background: linear-gradient(180deg, #090909, #111111);
+      padding: 16px;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .roll-wrap::before,
+    .roll-wrap::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 70px;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .roll-wrap::before {
+      left: 0;
+      background: linear-gradient(90deg, rgba(0,0,0,0.82), transparent);
+    }
+
+    .roll-wrap::after {
+      right: 0;
+      background: linear-gradient(270deg, rgba(0,0,0,0.82), transparent);
+    }
+
+    .roll-pointer {
+      position: absolute;
+      top: 10px;
+      bottom: 10px;
+      left: 50%;
+      width: 4px;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, transparent, #fef3c7, transparent);
+      box-shadow: 0 0 16px rgba(254,243,199,0.35);
+      z-index: 4;
+      border-radius: 999px;
+    }
+
+    .roll-track {
+      display: flex;
+      gap: 12px;
+      transition: transform 5.2s cubic-bezier(0.12, 0.8, 0.15, 1);
+      will-change: transform;
+    }
+
+    .loot-card {
+      width: 150px;
+      min-width: 150px;
+      height: 200px;
+      border-radius: 18px;
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      text-align: center;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+    }
+
+    .loot-card img {
+      width: 100%;
+      height: 104px;
+      object-fit: contain;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.25));
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .loot-name {
+      font-weight: 800;
+      font-size: 0.96rem;
+    }
+
+    .loot-meta {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .rarity-common { border-color: rgba(156,163,175,0.26); box-shadow: 0 0 14px rgba(156,163,175,0.08); }
+    .rarity-rare { border-color: rgba(59,130,246,0.28); box-shadow: 0 0 18px rgba(59,130,246,0.10); }
+    .rarity-epic { border-color: rgba(139,92,246,0.32); box-shadow: 0 0 18px rgba(139,92,246,0.13); }
+    .rarity-legendary { border-color: rgba(236,72,153,0.34); box-shadow: 0 0 22px rgba(236,72,153,0.15); }
+
+    .legend-common { color: #d1d5db; }
+    .legend-rare { color: #93c5fd; }
+    .legend-epic { color: #c4b5fd; }
+    .legend-legendary { color: #f9a8d4; }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    button, .link-btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 13px 16px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.18s ease, opacity 0.18s ease, box-shadow 0.25s ease, background 0.2s ease, border-color 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    button:hover, .link-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 18px rgba(212,175,55,0.15);
+    }
+
+    button:active, .link-btn:active { transform: scale(0.98); }
+
+    .btn-open {
+      background: linear-gradient(180deg, #f59e0b, #b45309);
+      min-width: 170px;
+      color: #1c1202;
+    }
+
+    .btn-muted {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text);
+    }
+
+    .btn-menu {
+      background: #111;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .msg {
+      min-height: 56px;
+      font-size: 1rem;
+      line-height: 1.5;
+      color: #fff4cf;
+    }
+
+    .msg.flash { animation: msgPulse 0.4s ease; }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .inventory-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      max-height: 520px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .inventory-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 68px 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .inventory-item img {
+      width: 68px;
+      height: 68px;
+      object-fit: contain;
+    }
+
+    .inventory-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .inventory-item span {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .list-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .list-item:last-child { border-bottom: 0; }
+    .list-item span { color: var(--muted); }
+
+    .highlight {
+      color: #fde68a;
+      font-weight: 800;
+    }
+
+    @keyframes shine {
+      0% { transform: translateX(-100%) rotate(8deg); }
+      100% { transform: translateX(100%) rotate(8deg); }
+    }
+
+    @keyframes msgPulse {
+      0% { opacity: 0.65; transform: translateY(2px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 1040px) {
+      .wrap { grid-template-columns: 1fr; }
+      .side {
+        border-left: 0;
+        border-top: 1px solid var(--border);
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 10px;
+        align-items: stretch;
+      }
+      .topbar, .main, .side { padding: 14px; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .controls { display: grid; grid-template-columns: 1fr; }
+      .inventory-grid { grid-template-columns: 1fr; }
+      .top-actions { width: 100%; }
+      .top-actions > * { flex: 1 1 auto; }
+      .loot-card {
+        width: 130px;
+        min-width: 130px;
+        height: 186px;
+      }
+      .loot-card img {
+        height: 92px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <h1>Mascot Lootbox</h1>
+        <p>Open plushie lootboxes for shared casino money and flex your inventory.</p>
+      </div>
+      <div class="top-actions">
+        <a class="link-btn btn-menu" href="https://piq.lol/casino">Back to Menu</a>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <main class="main">
+        <div class="stats">
+          <div class="stat"><span>Balance</span><strong id="balanceStat">$100</strong></div>
+          <div class="stat"><span>Cases Opened</span><strong id="openedStat">0</strong></div>
+          <div class="stat"><span>Last Pull</span><strong id="lastPullStat">None</strong></div>
+          <div class="stat"><span>Inventory Value</span><strong id="inventoryValueStat">$0</strong></div>
+        </div>
+
+        <section class="case-shell">
+          <div class="case-header">
+            <div class="case-title">MAKESHIP CASE</div>
+            <div class="case-price">$500 per case</div>
+          </div>
+
+          <div class="roll-wrap">
+            <div class="roll-pointer"></div>
+            <div class="roll-track" id="rollTrack"></div>
+          </div>
+
+          <div class="controls">
+            <button class="btn-open" id="openCaseBtn">Open Lootbox</button>
+            <button class="btn-muted" id="clearInventoryBtn">Clear Inventory</button>
+          </div>
+        </section>
+      </main>
+
+      <aside class="side">
+        <section class="panel">
+          <h3>Status</h3>
+          <div class="msg" id="messageBox">Open a case to win a random mascot item.</div>
+          <div class="pill-row">
+            <div class="pill" id="pricePill">Case price: $500</div>
+            <div class="pill" id="inventoryCountPill">Items: 0</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h3>Drop Rates</h3>
+          <div class="list">
+            <div class="list-item"><span>Common</span><strong class="legend-common">49.5%</strong></div>
+            <div class="list-item"><span>Rare</span><strong class="legend-rare">28%</strong></div>
+            <div class="list-item"><span>Epic</span><strong class="legend-epic">15%</strong></div>
+            <div class="list-item"><span>Legendary</span><strong class="legend-legendary">7.5%</strong></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h3>Inventory</h3>
+          <div class="inventory-grid" id="inventoryGrid"></div>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'casino-save-v1';
+    const CASE_PRICE = 500;
+    const INVENTORY_KEY = 'casino-lootbox-inventory-v1';
+
+    const ITEMS = [
+      { id: 'miku', name: 'Miku', rarity: 'common', chance: 14, value: 120, image: '../makeship-bj/cards/2_miku.png' },
+      { id: 'builderfan', name: 'Builderfan', rarity: 'common', chance: 12, value: 135, image: '../makeship-bj/cards/3_builderfan.png' },
+      { id: 'yixi', name: 'Yixi', rarity: 'common', chance: 12, value: 145, image: '../makeship-bj/cards/4_yixi.png' },
+      { id: 'chance', name: 'Chance', rarity: 'common', chance: 11.5, value: 160, image: '../makeship-bj/cards/5_chance.png' },
+      { id: 'dartmonkey', name: 'Dartmonkey', rarity: 'rare', chance: 9, value: 240, image: '../makeship-bj/cards/6_dartmonkey.png' },
+      { id: 'gabriel', name: 'Gabriel', rarity: 'rare', chance: 9, value: 255, image: '../makeship-bj/cards/7_gabriel.png' },
+      { id: 'gubby', name: 'Gubby', rarity: 'rare', chance: 10, value: 275, image: '../makeship-bj/cards/8_gubby.png' },
+      { id: 'whysoserius', name: 'Jimbo', rarity: 'epic', chance: 8, value: 420, image: '../makeship-bj/cards/9_whysoserius.png' },
+      { id: 'mrp', name: 'MrP', rarity: 'epic', chance: 7, value: 470, image: '../makeship-bj/cards/10_mrp.png' },
+      { id: 'omniman', name: 'Omni Man', rarity: 'legendary', chance: 3, value: 900, image: '../makeship-bj/cards/J_omniman.png' },
+      { id: 'twotime', name: 'Two Time', rarity: 'legendary', chance: 2.5, value: 980, image: '../makeship-bj/cards/Q_twotime.png' },
+      { id: 'painter', name: 'Painter', rarity: 'legendary', chance: 2, value: 1050, image: '../makeship-bj/cards/K_painter.png' },
+      { id: 'seba', name: 'Sebastian', rarity: 'legendary', chance: 0.5, value: 1800, image: '../makeship-bj/cards/A_seba.png' }
+    ];
+
+    const balanceStat = document.getElementById('balanceStat');
+    const openedStat = document.getElementById('openedStat');
+    const lastPullStat = document.getElementById('lastPullStat');
+    const inventoryValueStat = document.getElementById('inventoryValueStat');
+    const messageBox = document.getElementById('messageBox');
+    const inventoryCountPill = document.getElementById('inventoryCountPill');
+    const openCaseBtn = document.getElementById('openCaseBtn');
+    const clearInventoryBtn = document.getElementById('clearInventoryBtn');
+    const rollTrack = document.getElementById('rollTrack');
+    const inventoryGrid = document.getElementById('inventoryGrid');
+
+    let state = loadState();
+    let inventory = loadInventory();
+    let isOpening = false;
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          const fresh = { balance: 100, lootboxOpened: 0, lootboxLastPull: '' };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+          return fresh;
+        }
+        const parsed = JSON.parse(raw);
+        if (!Number.isFinite(parsed.balance)) parsed.balance = 100;
+        if (!Number.isFinite(parsed.lootboxOpened)) parsed.lootboxOpened = 0;
+        if (typeof parsed.lootboxLastPull !== 'string') parsed.lootboxLastPull = '';
+        return parsed;
+      } catch {
+        const fresh = { balance: 100, lootboxOpened: 0, lootboxLastPull: '' };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+        return fresh;
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function loadInventory() {
+      try {
+        const raw = localStorage.getItem(INVENTORY_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveInventory() {
+      localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
+    }
+
+    function formatMoney(value) {
+      return '$' + Math.floor(value);
+    }
+
+    function setMessage(text) {
+      messageBox.textContent = text;
+      messageBox.classList.remove('flash');
+      void messageBox.offsetWidth;
+      messageBox.classList.add('flash');
+    }
+
+    function getInventoryValue() {
+      return inventory.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
+    }
+
+    function rarityLabelClass(rarity) {
+      return `legend-${rarity}`;
+    }
+
+    function rarityCardClass(rarity) {
+      return `rarity-${rarity}`;
+    }
+
+    function updateStats() {
+      balanceStat.textContent = formatMoney(state.balance);
+      openedStat.textContent = String(state.lootboxOpened || 0);
+      lastPullStat.textContent = state.lootboxLastPull || 'None';
+      inventoryValueStat.textContent = formatMoney(getInventoryValue());
+      inventoryCountPill.textContent = `Items: ${inventory.length}`;
+    }
+
+    function renderInventory() {
+      inventoryGrid.innerHTML = '';
+      if (inventory.length === 0) {
+        inventoryGrid.innerHTML = `<div class="inventory-item" style="grid-column:1 / -1;"><div></div><div><strong>No items yet</strong><span>Open a case and your drops will appear here.</span></div></div>`;
+        return;
+      }
+
+      const sorted = [...inventory].reverse();
+      sorted.forEach(item => {
+        const div = document.createElement('div');
+        div.className = `inventory-item ${rarityCardClass(item.rarity)}`;
+        div.innerHTML = `
+          <img src="${item.image}" alt="${item.name}">
+          <div>
+            <strong>${item.name}</strong>
+            <span class="${rarityLabelClass(item.rarity)}">${item.rarity.toUpperCase()}</span><br>
+            <span>Value: ${formatMoney(item.value)}</span>
+          </div>
+        `;
+        inventoryGrid.appendChild(div);
+      });
+    }
+
+    function weightedPick() {
+      const total = ITEMS.reduce((sum, item) => sum + item.chance, 0);
+      let roll = Math.random() * total;
+      for (const item of ITEMS) {
+        if (roll < item.chance) return item;
+        roll -= item.chance;
+      }
+      return ITEMS[ITEMS.length - 1];
+    }
+
+    function generateRollItems(finalItem) {
+      const items = [];
+      for (let i = 0; i < 28; i++) {
+        items.push(ITEMS[Math.floor(Math.random() * ITEMS.length)]);
+      }
+      items.push(finalItem);
+      items.push(ITEMS[Math.floor(Math.random() * ITEMS.length)]);
+      return items;
+    }
+
+    function renderRoll(items) {
+      rollTrack.innerHTML = '';
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = `loot-card ${rarityCardClass(item.rarity)}`;
+        card.innerHTML = `
+          <img src="${item.image}" alt="${item.name}">
+          <div class="loot-name">${item.name}</div>
+          <div class="loot-meta">
+            <span class="${rarityLabelClass(item.rarity)}">${item.rarity.toUpperCase()}</span><br>
+            Value: ${formatMoney(item.value)}
+          </div>
+        `;
+        rollTrack.appendChild(card);
+      });
+      rollTrack.style.transform = 'translateX(0px)';
+    }
+
+    function animateRoll(items, finalItem) {
+      renderRoll(items);
+      const cardWidth = 162;
+      const containerWidth = rollTrack.parentElement.clientWidth;
+      const centerOffset = containerWidth / 2 - cardWidth / 2;
+      const finalIndex = items.length - 2;
+      const finalTranslate = -(finalIndex * cardWidth - centerOffset + 6);
+
+      requestAnimationFrame(() => {
+        rollTrack.style.transform = `translateX(${finalTranslate}px)`;
+      });
+
+      setTimeout(() => {
+        finishOpen(finalItem);
+      }, 5300);
+    }
+
+    function finishOpen(item) {
+      inventory.push(item);
+      state.lootboxOpened = (state.lootboxOpened || 0) + 1;
+      state.lootboxLastPull = item.name;
+      saveInventory();
+      saveState();
+      updateStats();
+      renderInventory();
+      setMessage(`You pulled ${item.name} — ${item.rarity.toUpperCase()} — worth ${formatMoney(item.value)}.`);
+      isOpening = false;
+      openCaseBtn.disabled = false;
+      openCaseBtn.style.opacity = '1';
+    }
+
+    function openCase() {
+      if (isOpening) return;
+      if (state.balance < CASE_PRICE) {
+        setMessage('Not enough casino money to open this lootbox.');
+        return;
+      }
+
+      isOpening = true;
+      openCaseBtn.disabled = true;
+      openCaseBtn.style.opacity = '0.7';
+
+      state.balance -= CASE_PRICE;
+      saveState();
+      updateStats();
+      setMessage('Opening lootbox...');
+
+      const finalItem = weightedPick();
+      const rollItems = generateRollItems(finalItem);
+      animateRoll(rollItems, finalItem);
+    }
+
+    openCaseBtn.addEventListener('click', openCase);
+    clearInventoryBtn.addEventListener('click', () => {
+      inventory = [];
+      saveInventory();
+      renderInventory();
+      updateStats();
+      setMessage('Inventory cleared.');
+    });
+
+    renderRoll(generateRollItems(ITEMS[0]));
+    renderInventory();
+    updateStats();
+  </script>
+</body>
+</html>
