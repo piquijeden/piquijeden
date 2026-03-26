@@ -530,13 +530,12 @@
           <div class="stat"><span>Last Pull</span><strong id="lastPullStat">None</strong></div>
           <div class="stat"><span>Inventory Value</span><strong id="inventoryValueStat">$0</strong></div>
         </div>
-
         <section class="case-shell">
           <div class="case-header">
             <div class="case-title">MAKESHIP CASE</div>
             <div class="case-price">$300 per case</div>
           </div>
-
+          
           <div class="roll-wrap">
             <div class="roll-pointer"></div>
             <div class="roll-track" id="rollTrack"></div>
@@ -551,6 +550,26 @@
             <button class="btn-open" id="openCaseBtn">Open Lootbox</button>
           </div>
         </section>
+          <section class="case-shell" style="margin-top: 18px;">
+  <div class="case-header">
+    <div class="case-title">ETOH CASE</div>
+    <div class="case-price">$900 per case</div>
+  </div>
+
+  <div class="roll-wrap">
+    <div class="roll-pointer"></div>
+    <div class="roll-track" id="rollTrackPremium"></div>
+  </div>
+
+  <div id="wonItemPanelPremium" class="panel" style="margin-top:16px; display:none; background:rgba(255,255,255,0.025);">
+    <h3 style="margin:0 0 12px;">You Won</h3>
+    <div id="wonItemContentPremium" style="display:grid; grid-template-columns:88px 1fr; gap:12px; align-items:center;"></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn-open" id="openCaseBtnPremium">Open Premium Lootbox</button>
+  </div>
+</section>
       </main>
 
       <aside class="side">
@@ -653,7 +672,19 @@
       { id: 'painter', name: 'Painter', rarity: 'legendary', chance: 2, value: 1050, image: 'cards/K_painter.png' },
       { id: 'seba', name: 'Sebastian', rarity: 'legendary', chance: 0.5, value: 1800, image: 'cards/A_seba.png' }
     ];
+    const CASE_PRICE_PREMIUM = 900;
 
+    const PREMIUM_ITEMS = [
+      { id: 'kfade', name: 'K Fade', rarity: 'legendary', chance: 25, value: 900, image: 'knife/fade-removebg-preview.png' },
+      { id: 'ksap', name: 'K Sapphire', rarity: 'legendary', chance: 25, value: 1050, image: 'knife/sap-removebg-preview.png' },
+      { id: 'kemerald', name: 'K Emerald', rarity: 'legendary', chance: 25, value: 1050, image: 'knife/emerald-removebg-preview.png' },
+      { id: 'k387', name: 'K 387', rarity: 'legendary', chance: 25, value: 1800, image: 'knife/387-removebg-preview.png' }
+    ];
+
+    const rollTrackPremium = document.getElementById('rollTrackPremium');
+    const openCaseBtnPremium = document.getElementById('openCaseBtnPremium');
+    const wonItemPanelPremium = document.getElementById('wonItemPanelPremium');
+    const wonItemContentPremium = document.getElementById('wonItemContentPremium');
     const balanceStat = document.getElementById('balanceStat');
     const openedStat = document.getElementById('openedStat');
     const lastPullStat = document.getElementById('lastPullStat');
@@ -944,6 +975,30 @@ function animateRoll(items, finalItem) {
       animateRoll(rollItems, finalItem);
     }
 
+    function openPremiumCase() {
+  if (isOpening) return;
+  if (state.balance < CASE_PRICE_PREMIUM) {
+    setMessage('Not enough casino money to open this premium lootbox.');
+    return;
+  }
+
+  isOpening = true;
+  openCaseBtnPremium.disabled = true;
+  openCaseBtnPremium.style.opacity = '0.7';
+
+  state.balance -= CASE_PRICE_PREMIUM;
+  saveState();
+  updateStats();
+  playSound('open');
+  setMessage('Opening premium lootbox...');
+
+  const finalItem = weightedPickFrom(PREMIUM_ITEMS);
+  const rollItems = generateRollItemsFrom(PREMIUM_ITEMS, finalItem);
+  animateRollForTrack(rollTrackPremium, rollItems, finalItem, () => {
+    finishOpenPremium(finalItem);
+  });
+}
+    
     function sellItem(index) {
       const item = inventory[index];
       if (!item) return;
