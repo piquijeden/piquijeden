@@ -840,26 +840,39 @@
       rollTrack.style.transform = 'translateX(0px)';
     }
 
-    function animateRoll(items, finalItem) {
-      renderRoll(items);
+function animateRoll(items, finalItem) {
+  renderRoll(items);
 
-      const cardWidth = 162;
-      const containerWidth = rollTrack.parentElement.clientWidth;
-      const centerOffset = containerWidth / 2 - cardWidth / 2;
-      const finalIndex = items.length - 2;
-      const extraOffset = Math.floor(Math.random() * 16) - 8;
-      const finalTranslate = -(finalIndex * cardWidth - centerOffset + extraOffset);
+  const cardWidth = 162;
+  const containerWidth = rollTrack.parentElement.clientWidth;
+  const centerOffset = containerWidth / 2 - cardWidth / 2;
+  const finalIndex = items.length - 2;
+  const extraOffset = Math.floor(Math.random() * 16) - 8;
+  const finalTranslate = -(finalIndex * cardWidth - centerOffset + extraOffset);
 
-      rollTrack.classList.add('spinning');
+  rollTrack.classList.remove('spinning');
 
-      requestAnimationFrame(() => {
-        rollTrack.style.transform = `translateX(${finalTranslate}px)`;
-      });
+  // reset animation state completely
+  rollTrack.style.transition = 'none';
+  rollTrack.style.transform = 'translateX(0px)';
 
-      setTimeout(() => {
-        rollTrack.classList.remove('spinning');
-        finishOpen(finalItem);
-      }, 5300);
+  // force browser reflow so next animation starts fresh
+  void rollTrack.offsetWidth;
+
+  // restore transition
+  rollTrack.style.transition = 'transform 5.2s cubic-bezier(0.12, 0.8, 0.15, 1)';
+  rollTrack.classList.add('spinning');
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      rollTrack.style.transform = `translateX(${finalTranslate}px)`;
+    });
+  });
+
+  setTimeout(() => {
+    rollTrack.classList.remove('spinning');
+    finishOpen(finalItem);
+  }, 5300);
     }
 
     function showWonItem(item) {
