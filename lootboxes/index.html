@@ -25,7 +25,7 @@
 
     * { box-sizing: border-box; }
 
-    body {
+   .body {
       margin: 0;
       min-height: 100vh;
       font-family: Inter, Arial, sans-serif;
@@ -35,13 +35,12 @@
         radial-gradient(circle at bottom, rgba(139,92,246,0.05), transparent 30%),
         linear-gradient(180deg, var(--bg), var(--bg2));
       padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: block;
     }
 
     .app {
       width: min(1240px, 100%);
+      margin: 0 auto;
       background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
       border: 1px solid var(--border);
       border-radius: 28px;
@@ -228,10 +227,6 @@
       will-change: transform;
     }
 
-    .roll-track.spinning {
-      filter: saturate(1.05);
-    }
-
     .loot-card {
       width: 150px;
       min-width: 150px;
@@ -246,13 +241,6 @@
       justify-content: space-between;
       text-align: center;
       box-shadow: 0 10px 24px rgba(0,0,0,0.25);
-      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-    }
-
-    .loot-card.winner {
-      transform: scale(1.04);
-      box-shadow: 0 0 0 1px rgba(255,255,255,0.05) inset, 0 0 26px rgba(212,175,55,0.22), 0 12px 28px rgba(0,0,0,0.3);
-      border-color: rgba(212,175,55,0.45);
     }
 
     .loot-card img {
@@ -382,43 +370,10 @@
       align-items: center;
     }
 
-    .inventory-actions {
-      margin-top: 8px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .sell-btn {
-      padding: 8px 10px;
-      border-radius: 10px;
-      border: 1px solid rgba(212,175,55,0.18);
-      background: rgba(255,255,255,0.06);
-      color: var(--text);
-      font-size: 0.82rem;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
     .inventory-item img {
       width: 68px;
       height: 68px;
       object-fit: contain;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.03);
-    }
-
-    .img-fallback {
-      width: 68px;
-      height: 68px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8rem;
-      color: var(--muted);
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.06);
     }
 
     .inventory-item strong {
@@ -525,11 +480,6 @@
             <div class="roll-track" id="rollTrack"></div>
           </div>
 
-          <div id="wonItemPanel" class="panel" style="margin-top:16px; display:none; background:rgba(255,255,255,0.025);">
-            <h3 style="margin:0 0 12px;">You Won</h3>
-            <div id="wonItemContent" style="display:grid; grid-template-columns:88px 1fr; gap:12px; align-items:center;"></div>
-          </div>
-
           <div class="controls">
             <button class="btn-open" id="openCaseBtn">Open Lootbox</button>
             <button class="btn-muted" id="clearInventoryBtn">Clear Inventory</button>
@@ -560,10 +510,6 @@
         <section class="panel">
           <h3>Inventory</h3>
           <div class="inventory-grid" id="inventoryGrid"></div>
-          <div class="controls" style="margin-top:12px;">
-            <button class="btn-muted" id="sellLastBtn">Sell Last Item</button>
-            <button class="btn-muted" id="sellAllBtn">Sell All Items</button>
-          </div>
         </section>
       </aside>
     </div>
@@ -571,71 +517,23 @@
 
   <script>
     const STORAGE_KEY = 'casino-save-v1';
-
-    const SOUNDS = {
-      open: 'sounds/lootbox-open.mp3',
-      win: 'sounds/lootbox-win.mp3',
-      sell: 'sounds/lootbox-sell.mp3'
-    };
-
-    const audio = {
-      open: new Audio(SOUNDS.open),
-      win: new Audio(SOUNDS.win),
-      sell: new Audio(SOUNDS.sell)
-    };
-
-    Object.values(audio).forEach(sound => {
-      sound.preload = 'auto';
-    });
-
-    function playSound(type) {
-      const sound = audio[type];
-      if (!sound) return;
-      try {
-        sound.currentTime = 0;
-        const p = sound.play();
-        if (p && typeof p.catch === 'function') p.catch(() => {});
-      } catch {}
-    }
-
-    function unlockAudio() {
-      Object.values(audio).forEach(sound => {
-        try {
-          sound.muted = true;
-          const p = sound.play();
-          if (p && typeof p.then === 'function') {
-            p.then(() => {
-              sound.pause();
-              sound.currentTime = 0;
-              sound.muted = false;
-            }).catch(() => {
-              sound.muted = false;
-            });
-          } else {
-            sound.muted = false;
-          }
-        } catch {
-          sound.muted = false;
-        }
-      });
-    }
     const CASE_PRICE = 500;
     const INVENTORY_KEY = 'casino-lootbox-inventory-v1';
 
     const ITEMS = [
-      { id: 'miku', name: 'Miku', rarity: 'common', chance: 14, value: 120, image: 'cards/2_miku.png' },
-      { id: 'builderfan', name: 'Builderfan', rarity: 'common', chance: 12, value: 135, image: 'cards/3_builderfan.png' },
-      { id: 'yixi', name: 'Yixi', rarity: 'common', chance: 12, value: 145, image: 'cards/4_yixi.png' },
-      { id: 'chance', name: 'Chance', rarity: 'common', chance: 11.5, value: 160, image: 'cards/5_chance.png' },
-      { id: 'dartmonkey', name: 'Dart Monkey', rarity: 'rare', chance: 9, value: 240, image: 'cards/6_dartmonkey.png' },
-      { id: 'gabriel', name: 'Gabriel', rarity: 'rare', chance: 9, value: 255, image: 'cards/7_gabriel.png' },
-      { id: 'gubby', name: 'Gubby', rarity: 'rare', chance: 10, value: 275, image: 'cards/8_gubby.png' },
-      { id: 'whysoserius', name: 'Jimbo', rarity: 'epic', chance: 8, value: 420, image: 'cards/9_whysoserius.png' },
-      { id: 'mrp', name: 'MrP', rarity: 'epic', chance: 7, value: 470, image: 'cards/10_mrp.png' },
-      { id: 'omniman', name: 'Omni Man', rarity: 'legendary', chance: 3, value: 900, image: 'cards/J_omniman.png' },
-      { id: 'twotime', name: 'Two Time', rarity: 'legendary', chance: 2.5, value: 980, image: 'cards/Q_twotime.png' },
-      { id: 'painter', name: 'Painter', rarity: 'legendary', chance: 2, value: 1050, image: 'cards/K_painter.png' },
-      { id: 'seba', name: 'Sebastian', rarity: 'legendary', chance: 0.5, value: 1800, image: 'cards/A_seba.png' }
+      { id: 'miku', name: 'Miku', rarity: 'common', chance: 14, value: 120, image: '../makeship-bj/cards/2_miku.png' },
+      { id: 'builderfan', name: 'Builderfan', rarity: 'common', chance: 12, value: 135, image: '../makeship-bj/cards/3_builderfan.png' },
+      { id: 'yixi', name: 'Yixi', rarity: 'common', chance: 12, value: 145, image: '../makeship-bj/cards/4_yixi.png' },
+      { id: 'chance', name: 'Chance', rarity: 'common', chance: 11.5, value: 160, image: '../makeship-bj/cards/5_chance.png' },
+      { id: 'dartmonkey', name: 'Dartmonkey', rarity: 'rare', chance: 9, value: 240, image: '../makeship-bj/cards/6_dartmonkey.png' },
+      { id: 'gabriel', name: 'Gabriel', rarity: 'rare', chance: 9, value: 255, image: '../makeship-bj/cards/7_gabriel.png' },
+      { id: 'gubby', name: 'Gubby', rarity: 'rare', chance: 10, value: 275, image: '../makeship-bj/cards/8_gubby.png' },
+      { id: 'whysoserius', name: 'Jimbo', rarity: 'epic', chance: 8, value: 420, image: '../makeship-bj/cards/9_whysoserius.png' },
+      { id: 'mrp', name: 'MrP', rarity: 'epic', chance: 7, value: 470, image: '../makeship-bj/cards/10_mrp.png' },
+      { id: 'omniman', name: 'Omni Man', rarity: 'legendary', chance: 3, value: 900, image: '../makeship-bj/cards/J_omniman.png' },
+      { id: 'twotime', name: 'Two Time', rarity: 'legendary', chance: 2.5, value: 980, image: '../makeship-bj/cards/Q_twotime.png' },
+      { id: 'painter', name: 'Painter', rarity: 'legendary', chance: 2, value: 1050, image: '../makeship-bj/cards/K_painter.png' },
+      { id: 'seba', name: 'Sebastian', rarity: 'legendary', chance: 0.5, value: 1800, image: '../makeship-bj/cards/A_seba.png' }
     ];
 
     const balanceStat = document.getElementById('balanceStat');
@@ -648,10 +546,6 @@
     const clearInventoryBtn = document.getElementById('clearInventoryBtn');
     const rollTrack = document.getElementById('rollTrack');
     const inventoryGrid = document.getElementById('inventoryGrid');
-    const sellLastBtn = document.getElementById('sellLastBtn');
-    const sellAllBtn = document.getElementById('sellAllBtn');
-    const wonItemPanel = document.getElementById('wonItemPanel');
-    const wonItemContent = document.getElementById('wonItemContent');
 
     let state = loadState();
     let inventory = loadInventory();
@@ -727,43 +621,26 @@
       inventoryCountPill.textContent = `Items: ${inventory.length}`;
     }
 
-    function imageBlock(item, size = 68) {
-      return `
-        <img src="${item.image}" alt="${item.name}" width="${size}" height="${size}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-fallback',textContent:'No image'}))">
-      `;
-    }
-
     function renderInventory() {
       inventoryGrid.innerHTML = '';
       if (inventory.length === 0) {
-        inventoryGrid.innerHTML = `<div class="inventory-item" style="grid-column:1 / -1;"><div class="img-fallback">Empty</div><div><strong>No items yet</strong><span>Open a case and your drops will appear here.</span></div></div>`;
+        inventoryGrid.innerHTML = `<div class="inventory-item" style="grid-column:1 / -1;"><div></div><div><strong>No items yet</strong><span>Open a case and your drops will appear here.</span></div></div>`;
         return;
       }
 
       const sorted = [...inventory].reverse();
-      sorted.forEach((item, index) => {
-        const originalIndex = inventory.length - 1 - index;
+      sorted.forEach(item => {
         const div = document.createElement('div');
         div.className = `inventory-item ${rarityCardClass(item.rarity)}`;
         div.innerHTML = `
-          ${imageBlock(item)}
+          <img src="${item.image}" alt="${item.name}">
           <div>
             <strong>${item.name}</strong>
             <span class="${rarityLabelClass(item.rarity)}">${item.rarity.toUpperCase()}</span><br>
             <span>Value: ${formatMoney(item.value)}</span>
-            <div class="inventory-actions">
-              <button class="sell-btn" data-sell-index="${originalIndex}">Sell for ${formatMoney(item.value)}</button>
-            </div>
           </div>
         `;
         inventoryGrid.appendChild(div);
-      });
-
-      inventoryGrid.querySelectorAll('[data-sell-index]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const idx = Number(btn.dataset.sellIndex);
-          sellItem(idx);
-        });
       });
     }
 
@@ -811,37 +688,18 @@
       const containerWidth = rollTrack.parentElement.clientWidth;
       const centerOffset = containerWidth / 2 - cardWidth / 2;
       const finalIndex = items.length - 2;
-      const extraOffset = Math.floor(Math.random() * 16) - 8;
-      const finalTranslate = -(finalIndex * cardWidth - centerOffset + extraOffset);
+      const finalTranslate = -(finalIndex * cardWidth - centerOffset + 6);
 
-      rollTrack.classList.add('spinning');
       requestAnimationFrame(() => {
         rollTrack.style.transform = `translateX(${finalTranslate}px)`;
       });
 
       setTimeout(() => {
-        rollTrack.classList.remove('spinning');
         finishOpen(finalItem);
       }, 5300);
     }
 
-    function showWonItem(item) {
-      wonItemPanel.style.display = 'block';
-      wonItemContent.innerHTML = `
-        ${imageBlock(item, 88)}
-        <div>
-          <div style="font-size:1.1rem; font-weight:800; margin-bottom:4px;">${item.name}</div>
-          <div class="${rarityLabelClass(item.rarity)}" style="font-weight:800; margin-bottom:4px;">${item.rarity.toUpperCase()}</div>
-          <div style="color:var(--muted);">Value: ${formatMoney(item.value)}</div>
-        </div>
-      `;
-    }
-
     function finishOpen(item) {
-      const cards = [...rollTrack.querySelectorAll('.loot-card')];
-      cards.forEach(card => card.classList.remove('winner'));
-      if (cards[cards.length - 2]) cards[cards.length - 2].classList.add('winner');
-
       inventory.push(item);
       state.lootboxOpened = (state.lootboxOpened || 0) + 1;
       state.lootboxLastPull = item.name;
@@ -849,8 +707,6 @@
       saveState();
       updateStats();
       renderInventory();
-      showWonItem(item);
-      playSound('win');
       setMessage(`You pulled ${item.name} — ${item.rarity.toUpperCase()} — worth ${formatMoney(item.value)}.`);
       isOpening = false;
       openCaseBtn.disabled = false;
@@ -871,49 +727,11 @@
       state.balance -= CASE_PRICE;
       saveState();
       updateStats();
-      playSound('open');
       setMessage('Opening lootbox...');
 
       const finalItem = weightedPick();
       const rollItems = generateRollItems(finalItem);
       animateRoll(rollItems, finalItem);
-    }
-
-    function sellItem(index) {
-      const item = inventory[index];
-      if (!item) return;
-      inventory.splice(index, 1);
-      state.balance += Math.floor(item.value);
-      saveInventory();
-      saveState();
-      renderInventory();
-      updateStats();
-      playSound('sell');
-      setMessage(`Sold ${item.name} for ${formatMoney(item.value)}.`);
-    }
-
-    function sellLastItem() {
-      if (inventory.length === 0) {
-        setMessage('You have no items to sell.');
-        return;
-      }
-      sellItem(inventory.length - 1);
-    }
-
-    function sellAllItems() {
-      if (inventory.length === 0) {
-        setMessage('You have no items to sell.');
-        return;
-      }
-      const total = inventory.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
-      inventory = [];
-      state.balance += Math.floor(total);
-      saveInventory();
-      saveState();
-      renderInventory();
-      updateStats();
-      playSound('sell');
-      setMessage(`Sold all items for ${formatMoney(total)}.`);
     }
 
     openCaseBtn.addEventListener('click', openCase);
@@ -924,17 +742,6 @@
       updateStats();
       setMessage('Inventory cleared.');
     });
-    sellLastBtn.addEventListener('click', sellLastItem);
-    sellAllBtn.addEventListener('click', sellAllItems);
-
-    const unlockOnce = () => {
-      unlockAudio();
-      window.removeEventListener('touchstart', unlockOnce);
-      window.removeEventListener('click', unlockOnce);
-    };
-
-    window.addEventListener('touchstart', unlockOnce, { once: true, passive: true });
-    window.addEventListener('click', unlockOnce, { once: true });
 
     renderRoll(generateRollItems(ITEMS[0]));
     renderInventory();
