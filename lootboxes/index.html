@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Piqui Lootboxes</title>
+  <title>Mascot Lootbox</title>
   <style>
     :root {
       --bg: #050505;
@@ -228,6 +228,10 @@
       will-change: transform;
     }
 
+    .roll-track.spinning {
+      filter: saturate(1.05);
+    }
+
     .loot-card {
       width: 150px;
       min-width: 150px;
@@ -371,6 +375,24 @@
       align-items: center;
     }
 
+    .inventory-actions {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .sell-btn {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(212,175,55,0.18);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
     .inventory-item img {
       width: 68px;
       height: 68px;
@@ -457,7 +479,10 @@
         <p>Open plushie lootboxes for shared casino money and flex your inventory.</p>
       </div>
       <div class="top-actions">
-        <a class="link-btn btn-menu" href="https://piq.lol/casino">Back to Menu</a>
+        <a class="link-btn btn-muted" href="slots.html">Go to Slots</a>
+        <a class="link-btn btn-muted" href="blackjack.html">Go to Blackjack</a>
+        <a class="link-btn btn-muted" href="roulette.html">Go to Roulette</a>
+        <a class="link-btn btn-menu" href="https://piq.lol">Back to Menu</a>
       </div>
     </div>
 
@@ -472,7 +497,7 @@
 
         <section class="case-shell">
           <div class="case-header">
-            <div class="case-title">MAKESHIP CASE</div>
+            <div class="case-title">PLUSHIE DROP CASE</div>
             <div class="case-price">$500 per case</div>
           </div>
 
@@ -511,6 +536,10 @@
         <section class="panel">
           <h3>Inventory</h3>
           <div class="inventory-grid" id="inventoryGrid"></div>
+          <div class="controls" style="margin-top:12px;">
+            <button class="btn-muted" id="sellLastBtn">Sell Last Item</button>
+            <button class="btn-muted" id="sellAllBtn">Sell All Items</button>
+          </div>
         </section>
       </aside>
     </div>
@@ -547,6 +576,8 @@
     const clearInventoryBtn = document.getElementById('clearInventoryBtn');
     const rollTrack = document.getElementById('rollTrack');
     const inventoryGrid = document.getElementById('inventoryGrid');
+    const sellLastBtn = document.getElementById('sellLastBtn');
+    const sellAllBtn = document.getElementById('sellAllBtn');
 
     let state = loadState();
     let inventory = loadInventory();
@@ -630,18 +661,29 @@
       }
 
       const sorted = [...inventory].reverse();
-      sorted.forEach(item => {
+      sorted.forEach((item, index) => {
+        const originalIndex = inventory.length - 1 - index;
         const div = document.createElement('div');
         div.className = `inventory-item ${rarityCardClass(item.rarity)}`;
         div.innerHTML = `
-          <img src="${item.image}" alt="${item.name}">
+          <img src="${item.image}" alt="${item.name}" onerror="this.style.display='none'">
           <div>
             <strong>${item.name}</strong>
             <span class="${rarityLabelClass(item.rarity)}">${item.rarity.toUpperCase()}</span><br>
             <span>Value: ${formatMoney(item.value)}</span>
+            <div class="inventory-actions">
+              <button class="sell-btn" data-sell-index="${originalIndex}">Sell for ${formatMoney(item.value)}</button>
+            </div>
           </div>
         `;
         inventoryGrid.appendChild(div);
+      });
+
+      inventoryGrid.querySelectorAll('[data-sell-index]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.dataset.sellIndex);
+          sellItem(idx);
+        });
       });
     }
 
@@ -689,13 +731,16 @@
       const containerWidth = rollTrack.parentElement.clientWidth;
       const centerOffset = containerWidth / 2 - cardWidth / 2;
       const finalIndex = items.length - 2;
-      const finalTranslate = -(finalIndex * cardWidth - centerOffset + 6);
+      const extraOffset = Math.floor(Math.random() * 16) - 8;
+      const finalTranslate = -(finalIndex * cardWidth - centerOffset + extraOffset);
 
+      rollTrack.classList.add('spinning');
       requestAnimationFrame(() => {
         rollTrack.style.transform = `translateX(${finalTranslate}px)`;
       });
 
       setTimeout(() => {
+        rollTrack.classList.remove('spinning');
         finishOpen(finalItem);
       }, 5300);
     }
@@ -735,6 +780,41 @@
       animateRoll(rollItems, finalItem);
     }
 
+    function sellItem(index) {
+      const item = inventory[index];
+      if (!item) return;
+      inventory.splice(index, 1);
+      state.balance += Math.floor(item.value);
+      saveInventory();
+      saveState();
+      renderInventory();
+      updateStats();
+      setMessage(`Sold ${item.name} for ${formatMoney(item.value)}.`);
+    }
+
+    function sellLastItem() {
+      if (inventory.length === 0) {
+        setMessage('You have no items to sell.');
+        return;
+      }
+      sellItem(inventory.length - 1);
+    }
+
+    function sellAllItems() {
+      if (inventory.length === 0) {
+        setMessage('You have no items to sell.');
+        return;
+      }
+      const total = inventory.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
+      inventory = [];
+      state.balance += Math.floor(total);
+      saveInventory();
+      saveState();
+      renderInventory();
+      updateStats();
+      setMessage(`Sold all items for ${formatMoney(total)}.`);
+    }
+
     openCaseBtn.addEventListener('click', openCase);
     clearInventoryBtn.addEventListener('click', () => {
       inventory = [];
@@ -743,6 +823,8 @@
       updateStats();
       setMessage('Inventory cleared.');
     });
+    sellLastBtn.addEventListener('click', sellLastItem);
+    sellAllBtn.addEventListener('click', sellAllItems);
 
     renderRoll(generateRollItems(ITEMS[0]));
     renderInventory();
