@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Makeship Blackjack</title>
+  <style>
+    :root {
+      --bg1: #030303;
+      --bg2: #0a0f0a;
+      --panel: rgba(5, 8, 6, 0.84);
+      --panel-strong: rgba(2, 4, 3, 0.96);
+      --text: #ecfdf5;
+      --muted: #9ca3af;
+      --accent: #22c55e;
+      --accent-2: #10b981;
+      --danger: #111111;
+      --danger-border: #22c55e;
+      --border: rgba(34, 197, 94, 0.18);
+      --shadow: 0 20px 40px rgba(0,0,0,0.55);
+      --glow: 0 0 18px rgba(34, 197, 94, 0.28);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, rgba(34, 197, 94, 0.14), transparent 28%),
+        radial-gradient(circle at bottom, rgba(16, 185, 129, 0.08), transparent 30%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .game-shell {
+      width: min(1200px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow), var(--glow);
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      flex-wrap: wrap;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+      letter-spacing: 0.02em;
+    }
+
+    .brand p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .top-actions,
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button,
+    .link-btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.18s ease, opacity 0.18s ease, background 0.2s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    button:hover,
+    .link-btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.96;
+      box-shadow: 0 0 18px rgba(34, 197, 94, 0.18);
+    }
+
+    button:active,
+    .link-btn:active {
+      transform: scale(0.98);
+    }
+
+    button:focus-visible,
+    .link-btn:focus-visible {
+      outline: 2px solid rgba(34, 197, 94, 0.7);
+      outline-offset: 2px;
+    }
+
+    .btn-primary { background: var(--accent); color: #02120a; box-shadow: var(--glow); }
+    .btn-success { background: var(--accent-2); color: #02120a; box-shadow: var(--glow); }
+    .btn-danger { background: var(--danger); border: 1px solid var(--danger-border); color: var(--text); }
+    .btn-muted { background: rgba(255,255,255,0.08); border: 1px solid rgba(34, 197, 94, 0.18); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 0;
+    }
+
+    .table-zone {
+      padding: 24px;
+      min-height: 650px;
+      background:
+        radial-gradient(circle at center, rgba(34,197,94,0.10), transparent 58%),
+        linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+      position: relative;
+      overflow: hidden;
+    }
+
+    .table-zone::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(34,197,94,0.05), transparent);
+      transform: translateX(-100%);
+      animation: scanline 8s linear infinite;
+      pointer-events: none;
+    }
+
+    .sidebar {
+      padding: 24px;
+      border-left: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .panel {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.03);
+    }
+
+    .panel h2,
+    .panel h3 {
+      margin: 0 0 12px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .section-title span {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .hand {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      min-height: 170px;
+      padding: 12px 0 4px;
+    }
+
+    .mascot-card {
+      width: 110px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(34, 197, 94, 0.18);
+      border-radius: 20px;
+      padding: 10px;
+      box-shadow: 0 12px 25px rgba(0,0,0,0.3), 0 0 16px rgba(34, 197, 94, 0.08);
+      text-align: center;
+      animation: dealIn 0.35s ease both;
+      transform-origin: center bottom;
+      transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+
+    .mascot-card:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 18px 30px rgba(0,0,0,0.34), 0 0 20px rgba(34, 197, 94, 0.16);
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+
+    .mascot-card.winner {
+      animation: winGlow 1.4s ease-in-out infinite alternate;
+    }
+
+    .mascot-card.busted {
+      animation: bustedShake 0.35s ease;
+      border-color: rgba(239, 68, 68, 0.5);
+    }
+
+    .mascot-card img {
+      width: 100%;
+      height: 90px;
+      object-fit: contain;
+      display: block;
+      margin-bottom: 8px;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.25));
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .mascot-name {
+      font-size: 0.92rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .mascot-value {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .score-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      font-size: 1rem;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .score-row:last-child {
+      border-bottom: 0;
+    }
+
+    .status {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      color: #fff7ed;
+      min-height: 76px;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+
+    .status.pulse {
+      animation: statusPulse 0.45s ease;
+    }
+
+    .chips {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--muted);
+      font-size: 0.92rem;
+      box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.04);
+    }
+
+    .value-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      max-height: 360px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .value-item {
+      display: grid;
+      grid-template-columns: 54px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 10px;
+    }
+
+    .value-item img {
+      width: 54px;
+      height: 54px;
+      object-fit: contain;
+    }
+
+    .value-item strong {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .value-item span {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    @keyframes dealIn {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.92) rotate(-3deg);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotate(0deg);
+      }
+    }
+
+    @keyframes winGlow {
+      from {
+        box-shadow: 0 12px 25px rgba(0,0,0,0.3), 0 0 10px rgba(34, 197, 94, 0.18);
+      }
+      to {
+        box-shadow: 0 18px 30px rgba(0,0,0,0.35), 0 0 24px rgba(34, 197, 94, 0.34);
+      }
+    }
+
+    @keyframes bustedShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-3px); }
+    }
+
+    @keyframes statusPulse {
+      0% { opacity: 0.65; transform: translateY(2px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes scanline {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    @media (max-width: 960px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        border-left: 0;
+        border-top: 1px solid var(--border);
+      }
+
+      .table-zone {
+        min-height: auto;
+      }
+    }
+
+      .sidebar {
+        border-left: 0;
+        border-top: 1px solid var(--border);
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 10px;
+        align-items: stretch;
+      }
+
+      .game-shell {
+        border-radius: 20px;
+      }
+
+      .topbar,
+      .table-zone,
+      .sidebar {
+        padding: 14px;
+      }
+
+      .brand h1 {
+        font-size: 1.45rem;
+      }
+
+      .brand p {
+        font-size: 0.9rem;
+      }
+
+      .hand {
+        gap: 10px;
+        min-height: 140px;
+      }
+
+      .mascot-card {
+        width: calc(33.333% - 7px);
+        min-width: 88px;
+        padding: 8px;
+        border-radius: 16px;
+      }
+
+      .mascot-card img {
+        height: 72px;
+      }
+
+      .mascot-name {
+        font-size: 0.82rem;
+      }
+
+      .mascot-value {
+        font-size: 0.78rem;
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .controls button,
+      .top-actions button,
+      .top-actions a {
+        width: 100%;
+        min-height: 48px;
+      }
+
+      .top-actions {
+        width: 100%;
+      }
+
+      .top-actions > * {
+        flex: 1 1 calc(50% - 5px);
+      }
+
+      .value-item {
+        grid-template-columns: 46px 1fr auto;
+        gap: 10px;
+      }
+
+      .value-item img {
+        width: 46px;
+        height: 46px;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .mascot-card {
+        width: calc(50% - 6px);
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @supports (padding: max(0px)) {
+      body {
+        padding-left: max(10px, env(safe-area-inset-left));
+        padding-right: max(10px, env(safe-area-inset-right));
+        padding-top: max(10px, env(safe-area-inset-top));
+        padding-bottom: max(10px, env(safe-area-inset-bottom));
+      }
+    }
+
+      .mascot-card {
+        width: 95px;
+      }
+
+      .controls button,
+      .top-actions button,
+      .top-actions a {
+        flex: 1 1 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-shell">
+    <div class="topbar">
+      <div class="brand">
+        <h1>Makeship Blackjack</h1>
+        <p>Play blackjack with Makeship Plushies. Get as close to 21 as possible without going over.</p>
+      </div>
+      <div class="top-actions">
+        <button id="infoToggle" class="btn-muted">Value Info</button>
+        <a class="link-btn btn-danger" href="https://piq.lol">Back to Menu</a>
+      </div>
+    </div>
+
+    <div class="layout">
+      <main class="table-zone">
+        <section>
+          <div class="section-title">
+            <h2>Dealer</h2>
+            <span id="dealerScoreLabel">Score: 0</span>
+          </div>
+          <div id="dealerHand" class="hand"></div>
+        </section>
+
+        <section style="margin-top: 28px;">
+          <div class="section-title">
+            <h2>You</h2>
+            <span id="playerScoreLabel">Score: 0</span>
+          </div>
+          <div id="playerHand" class="hand"></div>
+        </section>
+      </main>
+
+      <aside class="sidebar">
+        <div class="panel">
+          <h3>Game Status</h3>
+          <div class="status" id="statusText">Click “New Round” to begin.</div>
+          <div class="chips" style="margin-top: 12px;">
+            <div class="chip" id="roundChip">Round: 0</div>
+            <div class="chip" id="deckChip">Remaining: 0</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Controls</h3>
+          <div class="controls">
+            <button id="newGameBtn" class="btn-primary">New Round</button>
+            <button id="hitBtn" class="btn-success">Hit</button>
+            <button id="standBtn" class="btn-muted">Stand</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Results</h3>
+          <div class="score-row"><span>Wins</span><strong id="winsCount">0</strong></div>
+          <div class="score-row"><span>Losses</span><strong id="lossesCount">0</strong></div>
+          <div class="score-row"><span>Draws</span><strong id="drawsCount">0</strong></div>
+        </div>
+
+        <div id="infoPanel" class="panel hidden">
+          <h3>Plushies and Their Values</h3>
+          <div class="value-list" id="valueList"></div>
+        </div>
+
+        <div class="panel">
+          <div class="footer-note">
+            Replace the PNG URLs in the code with your own plushie images. You can also change names and values in the <strong>MASCOTS</strong> array.<br><br>
+            Sound files can be added in the <strong>SOUNDS</strong> object. Just upload your own MP3 files and replace the paths.
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const SOUNDS = {
+      deal: 'sounds/deal.mp3',
+      win: 'sounds/win.mp3',
+      lose: 'sounds/lose.mp3'
+    };
+
+    const audio = {
+      deal: new Audio(SOUNDS.deal),
+      win: new Audio(SOUNDS.win),
+      lose: new Audio(SOUNDS.lose)
+    };
+
+    Object.values(audio).forEach(sound => {
+      sound.preload = 'auto';
+    });
+
+    function playSound(type) {
+      const sound = audio[type];
+      if (!sound) return;
+
+      try {
+        sound.currentTime = 0;
+        const playPromise = sound.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+          playPromise.catch(() => {});
+        }
+      } catch (error) {
+      }
+    }
+
+    function unlockAudio() {
+      Object.values(audio).forEach(sound => {
+        try {
+          sound.muted = true;
+          const playPromise = sound.play();
+          if (playPromise && typeof playPromise.then === 'function') {
+            playPromise.then(() => {
+              sound.pause();
+              sound.currentTime = 0;
+              sound.muted = false;
+            }).catch(() => {
+              sound.muted = false;
+            });
+          } else {
+            sound.muted = false;
+          }
+        } catch (error) {
+          sound.muted = false;
+        }
+      });
+    }
+
+    const MASCOTS = [
+      {
+        name: 'Kitty',
+        value: 2,
+        image: 'https://images.unsplash.com/photo-1519052537078-e6302a4968d4?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        name: 'Panda',
+        value: 3,
+        image: 'https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        name: 'Froggy',
+        value: 4,
+        image: 'https://images.unsplash.com/photo-1583496661160-fb5886a13d41?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        name: 'Foxie',
+        value: 5,
+        image: 'https://images.unsplash.com/photo-1474511320723-9a56873867b5?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        name: 'Bear',
+        value: 6,
+        image: 'https://images.unsplash.com/photo-1456926631375-92c8ce872def?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        name: 'Penguin',
+        value: 7,
+        image: 'https://images.unsplash.com/photo-1517783999520-f068d7431a60?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        name: 'Tiger',
+        value: 8,
+        image: 'https://images.unsplash.com/photo-1549366021-9f761d450615?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        name: 'Bunny',
+        value: 9,
+        image: 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        name: 'Unicorn',
+        value: 10,
+        image: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        name: 'Dragon',
+        value: 10,
+        image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        name: 'Cloud',
+        value: 10,
+        image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        name: 'Star',
+        value: 11,
+        altValue: 1,
+        image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=300&q=80'
+      }
+    ];
+
+    const dealerHandEl = document.getElementById('dealerHand');
+    const playerHandEl = document.getElementById('playerHand');
+    const dealerScoreLabel = document.getElementById('dealerScoreLabel');
+    const playerScoreLabel = document.getElementById('playerScoreLabel');
+    const statusText = document.getElementById('statusText');
+    const roundChip = document.getElementById('roundChip');
+    const deckChip = document.getElementById('deckChip');
+    const winsCount = document.getElementById('winsCount');
+    const lossesCount = document.getElementById('lossesCount');
+    const drawsCount = document.getElementById('drawsCount');
+    const valueList = document.getElementById('valueList');
+    const infoPanel = document.getElementById('infoPanel');
+    const infoToggle = document.getElementById('infoToggle');
+    const newGameBtn = document.getElementById('newGameBtn');
+    const hitBtn = document.getElementById('hitBtn');
+    const standBtn = document.getElementById('standBtn');
+
+    let deck = [];
+    let playerHand = [];
+    let dealerHand = [];
+    let gameOver = true;
+    let round = 0;
+    let wins = 0;
+    let losses = 0;
+    let draws = 0;
+    let lastResult = '';
+
+    function buildDeck() {
+      deck = [];
+      for (let i = 0; i < 4; i++) {
+        MASCOTS.forEach(mascot => {
+          deck.push({ ...mascot, id: crypto.randomUUID() });
+        });
+      }
+      shuffle(deck);
+      updateDeckCount();
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function drawCard() {
+      if (deck.length === 0) buildDeck();
+      const card = deck.pop();
+      updateDeckCount();
+      playSound('deal');
+      return card;
+    }
+
+    function calculateScore(hand) {
+      let total = 0;
+      let acesLike = 0;
+
+      hand.forEach(card => {
+        total += card.value;
+        if (card.altValue) acesLike++;
+      });
+
+      while (total > 21 && acesLike > 0) {
+        total -= 10;
+        acesLike--;
+      }
+
+      return total;
+    }
+
+    function renderHand(target, hand) {
+      target.innerHTML = '';
+      hand.forEach((card, index) => {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'mascot-card';
+        cardEl.style.animationDelay = `${index * 70}ms`;
+        cardEl.innerHTML = `
+          <img src="${card.image}" alt="${card.name}" draggable="false">
+          <div class="mascot-name">${card.name}</div>
+          <div class="mascot-value">Value: ${card.altValue ? `${card.altValue}/${card.value}` : card.value}</div>
+        `;
+        target.appendChild(cardEl);
+      });
+    }
+
+    function refreshBoard() {
+      renderHand(playerHandEl, playerHand);
+      renderHand(dealerHandEl, dealerHand);
+      playerScoreLabel.textContent = `Score: ${calculateScore(playerHand)}`;
+      dealerScoreLabel.textContent = `Score: ${calculateScore(dealerHand)}`;
+      roundChip.textContent = `Round: ${round}`;
+      winsCount.textContent = wins;
+      lossesCount.textContent = losses;
+      drawsCount.textContent = draws;
+      updateVisualState();
+    }
+
+    function setStatus(message) {
+      statusText.textContent = message;
+      statusText.classList.remove('pulse');
+      void statusText.offsetWidth;
+      statusText.classList.add('pulse');
+    }
+
+    function updateButtons() {
+      hitBtn.disabled = gameOver;
+      standBtn.disabled = gameOver;
+      hitBtn.style.opacity = gameOver ? '0.5' : '1';
+      standBtn.style.opacity = gameOver ? '0.5' : '1';
+      hitBtn.style.cursor = gameOver ? 'not-allowed' : 'pointer';
+      standBtn.style.cursor = gameOver ? 'not-allowed' : 'pointer';
+    }
+
+    function updateDeckCount() {
+      deckChip.textContent = `Remaining: ${deck.length}`;
+    }
+
+    function updateVisualState() {
+      const playerCards = [...playerHandEl.querySelectorAll('.mascot-card')];
+      const dealerCards = [...dealerHandEl.querySelectorAll('.mascot-card')];
+      const playerScore = calculateScore(playerHand);
+      const dealerScore = calculateScore(dealerHand);
+
+      playerCards.forEach(card => card.classList.remove('winner', 'busted'));
+      dealerCards.forEach(card => card.classList.remove('winner', 'busted'));
+
+      if (playerScore > 21) {
+        playerCards.forEach(card => card.classList.add('busted'));
+      }
+
+      if (dealerScore > 21) {
+        dealerCards.forEach(card => card.classList.add('busted'));
+      }
+
+      if (gameOver) {
+        if (lastResult === 'win') {
+          playerCards.forEach(card => card.classList.add('winner'));
+        } else if (lastResult === 'loss') {
+          dealerCards.forEach(card => card.classList.add('winner'));
+        } else if (lastResult === 'draw') {
+          playerCards.forEach(card => card.classList.add('winner'));
+          dealerCards.forEach(card => card.classList.add('winner'));
+        }
+      }
+    }
+
+    function startRound() {
+      if (deck.length < 10) buildDeck();
+
+      round++;
+      gameOver = false;
+      lastResult = '';
+      playerHand = [drawCard(), drawCard()];
+      dealerHand = [drawCard(), drawCard()];
+      refreshBoard();
+      updateButtons();
+
+      const playerScore = calculateScore(playerHand);
+      const dealerScore = calculateScore(dealerHand);
+
+      if (playerScore === 21 && dealerScore === 21) {
+        endRound('Draw! Both sides hit blackjack.', 'draw');
+      } else if (playerScore === 21) {
+        endRound('Blackjack! You win the round.', 'win');
+      } else if (dealerScore === 21) {
+        endRound('Dealer has blackjack. You lose this round.', 'loss');
+      } else {
+        setStatus('Your turn. Hit for another plushie or stand to end your turn.');
+      }
+    }
+
+    function playerHit() {
+      if (gameOver) return;
+      playerHand.push(drawCard());
+      refreshBoard();
+
+      const score = calculateScore(playerHand);
+      if (score > 21) {
+        endRound('You went over 21. Dealer wins.', 'loss');
+      } else if (score === 21) {
+        dealerTurn();
+      } else {
+        setStatus('Nice draw. You can hit again or stand.');
+      }
+    }
+
+    function dealerTurn() {
+      if (gameOver) return;
+      setStatus('Dealer is drawing plushies...');
+
+      while (calculateScore(dealerHand) < 17) {
+        dealerHand.push(drawCard());
+      }
+
+      refreshBoard();
+      decideWinner();
+    }
+
+    function decideWinner() {
+      const playerScore = calculateScore(playerHand);
+      const dealerScore = calculateScore(dealerHand);
+
+      if (dealerScore > 21) {
+        endRound('Dealer went over 21. You win!', 'win');
+      } else if (playerScore > dealerScore) {
+        endRound('You have a higher score than the dealer. You win!', 'win');
+      } else if (playerScore < dealerScore) {
+        endRound('Dealer has the better score. You lose.', 'loss');
+      } else {
+        endRound('Draw. You both have the same score.', 'draw');
+      }
+    }
+
+    function endRound(message, result) {
+      gameOver = true;
+      lastResult = result;
+
+      if (result === 'win') {
+        wins++;
+        playSound('win');
+      }
+      if (result === 'loss') {
+        losses++;
+        playSound('lose');
+      }
+      if (result === 'draw') draws++;
+
+      refreshBoard();
+      updateButtons();
+      setStatus(message + ' Click “New Round” to play again.');
+    }
+
+    function renderValueList() {
+      valueList.innerHTML = '';
+      MASCOTS.forEach(mascot => {
+        const item = document.createElement('div');
+        item.className = 'value-item';
+        item.innerHTML = `
+          <img src="${mascot.image}" alt="${mascot.name}">
+          <div>
+            <strong>${mascot.name}</strong>
+            <span>${mascot.altValue ? `Counts as ${mascot.altValue} or ${mascot.value}` : `Counts as ${mascot.value}`}</span>
+          </div>
+          <strong>${mascot.altValue ? `${mascot.altValue}/${mascot.value}` : mascot.value}</strong>
+        `;
+        valueList.appendChild(item);
+      });
+    }
+
+    infoToggle.addEventListener('click', () => {
+      infoPanel.classList.toggle('hidden');
+      infoToggle.textContent = infoPanel.classList.contains('hidden')
+        ? 'Value Info'
+        : 'Hide Info';
+    });
+
+    const unlockOnce = () => {
+      unlockAudio();
+      window.removeEventListener('touchstart', unlockOnce);
+      window.removeEventListener('click', unlockOnce);
+    };
+
+    window.addEventListener('touchstart', unlockOnce, { once: true, passive: true });
+    window.addEventListener('click', unlockOnce, { once: true });
+
+    newGameBtn.addEventListener('click', startRound);
+    hitBtn.addEventListener('click', playerHit);
+    standBtn.addEventListener('click', dealerTurn);
+
+    buildDeck();
+    renderValueList();
+    refreshBoard();
+    updateButtons();
+  </script>
+</body>
+</html>
