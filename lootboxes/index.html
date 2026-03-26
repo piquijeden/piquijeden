@@ -868,6 +868,56 @@
 function animateRoll(items, finalItem) {
   renderRoll(items);
 
+  function animateRollPremium(items, finalItem) {
+  rollTrackPremium.innerHTML = '';
+
+  items.forEach(item => {
+    const card = document.createElement('div');
+    card.className = `loot-card ${rarityCardClass(item.rarity)}`;
+    card.innerHTML = `
+      <img src="${item.image}" alt="${item.name}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-fallback',textContent:'No image'}))">
+      <div class="loot-name">${item.name}</div>
+      <div class="loot-meta">
+        <span class="${rarityLabelClass(item.rarity)}">${item.rarity.toUpperCase()}</span><br>
+        Value: ${formatMoney(item.value)}
+      </div>
+    `;
+    rollTrackPremium.appendChild(card);
+  });
+
+  const cardWidth = 162;
+  const containerWidth = rollTrackPremium.parentElement.clientWidth;
+  const centerOffset = containerWidth / 2 - cardWidth / 2;
+  const finalIndex = items.length - 2;
+  const extraOffset = Math.floor(Math.random() * 16) - 8;
+  const finalTranslate = -(finalIndex * cardWidth - centerOffset + extraOffset);
+
+  rollTrackPremium.classList.remove('spinning');
+  rollTrackPremium.style.transition = 'none';
+  rollTrackPremium.style.transform = 'translateX(0px)';
+
+  void rollTrackPremium.offsetWidth;
+
+  rollTrackPremium.style.transition = 'transform 5.2s cubic-bezier(0.12, 0.8, 0.15, 1)';
+  rollTrackPremium.classList.add('spinning');
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      rollTrackPremium.style.transform = `translateX(${finalTranslate}px)`;
+    });
+  });
+
+  setTimeout(() => {
+    rollTrackPremium.classList.remove('spinning');
+
+    const cards = [...rollTrackPremium.querySelectorAll('.loot-card')];
+    cards.forEach(card => card.classList.remove('winner'));
+    if (cards[cards.length - 2]) cards[cards.length - 2].classList.add('winner');
+
+    finishOpenPremium(finalItem);
+  }, 5300);
+}
+
   const cardWidth = 162;
   const containerWidth = rollTrack.parentElement.clientWidth;
   const centerOffset = containerWidth / 2 - cardWidth / 2;
