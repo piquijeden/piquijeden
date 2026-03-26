@@ -646,13 +646,15 @@
       betPill.textContent = `Current bet: ${formatMoney(Math.floor(Number(betInput.value) || 0))}`;
     }
 
-    function setActiveBet(color) {
-      selectedBet = color;
-      betCards.forEach(card => {
-        card.classList.toggle('active', card.dataset.bet === color);
-      });
-      updateStats();
-    }
+function setActiveBet(color) {
+  if (isSpinning) return;
+
+  selectedBet = color;
+  betCards.forEach(card => {
+    card.classList.toggle('active', card.dataset.bet === color);
+  });
+  updateStats();
+}
 
     function getMultiplier(color) {
       if (color === 'green') return 14;
