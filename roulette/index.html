@@ -447,10 +447,10 @@
     <div class="topbar">
       <div class="brand">
         <h1>Piqui Roulette</h1>
-        <p>Normal roulette, just made for fun</p>
+        <p>Normal Roulette made for fun</p>
       </div>
       <div class="top-actions">
-        <a class="link-btn btn-menu" href="https://piq.lol">Back to Menu</a>
+        <a class="link-btn btn-menu" href="https://piq.lol/casino">Back to Menu</a>
       </div>
     </div>
 
@@ -536,6 +536,55 @@
 
   <script>
     const STORAGE_KEY = 'casino-save-v1';
+
+    const SOUNDS = {
+      spin: 'sounds/roulette-spin.mp3',
+      win: 'sounds/roulette-win.mp3',
+      lose: 'sounds/roulette-lose.mp3'
+    };
+
+    const audio = {
+      spin: new Audio(SOUNDS.spin),
+      win: new Audio(SOUNDS.win),
+      lose: new Audio(SOUNDS.lose)
+    };
+
+    Object.values(audio).forEach(sound => {
+      sound.preload = 'auto';
+    });
+
+    function playSound(type) {
+      const sound = audio[type];
+      if (!sound) return;
+      try {
+        sound.currentTime = 0;
+        const p = sound.play();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
+      } catch {}
+    }
+
+    function unlockAudio() {
+      Object.values(audio).forEach(sound => {
+        try {
+          sound.muted = true;
+          const p = sound.play();
+          if (p && typeof p.then === 'function') {
+            p.then(() => {
+              sound.pause();
+              sound.currentTime = 0;
+              sound.muted = false;
+            }).catch(() => {
+              sound.muted = false;
+            });
+          } else {
+            sound.muted = false;
+          }
+        } catch {
+          sound.muted = false;
+        }
+      });
+    }
+
     const wheel = document.getElementById('wheel');
     const betInput = document.getElementById('betInput');
     const spinBtn = document.getElementById('spinBtn');
@@ -631,13 +680,16 @@
 
     function finishSpin(resultColor, bet) {
       let win = 0;
+
       if (resultColor === selectedBet) {
         win = Math.floor(bet * getMultiplier(resultColor));
         state.balance += win;
         state.rouletteLastWin = win;
+        playSound('win');
         setMessage(`You won ${formatMoney(win)} on ${resultColor.toUpperCase()}!`);
       } else {
         state.rouletteLastWin = 0;
+        playSound('lose');
         setMessage(`The wheel landed on ${resultColor.toUpperCase()}. You lost ${formatMoney(bet)}.`);
       }
 
@@ -671,6 +723,7 @@
       saveState();
       updateStats();
       setMessage('Spinning the wheel...');
+      playSound('spin');
 
       const result = pickResult();
       spinWheelTo(result.index);
@@ -687,6 +740,7 @@
     betInput.addEventListener('input', updateStats);
 
     spinBtn.addEventListener('click', spin);
+
     resetMoneyBtn.addEventListener('click', () => {
       state.balance = 100;
       state.rouletteLastWin = 0;
@@ -694,6 +748,15 @@
       updateStats();
       setMessage('Money has been reset to $100.');
     });
+
+    const unlockOnce = () => {
+      unlockAudio();
+      window.removeEventListener('touchstart', unlockOnce);
+      window.removeEventListener('click', unlockOnce);
+    };
+
+    window.addEventListener('touchstart', unlockOnce, { once: true, passive: true });
+    window.addEventListener('click', unlockOnce, { once: true });
 
     updateStats();
     setActiveBet('red');
