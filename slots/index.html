@@ -20,7 +20,7 @@
       --purple:#a855f7;
     }
 
-    * { box-sizing:border-box; }
+    * { box-sizing: border-box; }
 
     body{
       margin:0;
@@ -67,6 +67,13 @@
     .brand p{
       margin:6px 0 0;
       color:var(--muted);
+    }
+
+    .top-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
     }
 
     .wrap{
@@ -454,10 +461,8 @@
 
     .tutim-display{
       position:absolute;
-      left:50%;
+      right:18px;
       top:18px;
-      right:auto;
-      transform:translateX(-50%);
       width:96px;
       height:96px;
       border-radius:18px;
@@ -555,23 +560,30 @@
         width:78px;
         height:78px;
         right:12px;
-        bottom:12px;
+        top:12px;
+      }
+      .top-actions{
+        width:100%;
+      }
+      .top-actions > *{
+        flex:1 1 auto;
       }
     }
   </style>
 </head>
 <body>
-  <div class="topbar">
-    <div class="brand">
-      <h1>Piqui Slots</h1>
-      <p>Casino-style slot machine, maybe silly :3</p>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <h1>Piqui Slots</h1>
+        <p>Casino-style slot machine with saved balance and a small shop.</p>
+      </div>
+      <div class="top-actions">
+        <a class="link-btn btn-work" href="blackjack.html">Go to Blackjack</a>
+        <a class="link-btn btn-menu" href="https://piq.lol">Back to Menu</a>
+      </div>
     </div>
-    <div style="display:flex; gap:10px; flex-wrap:wrap;">
-      <a class="link-btn btn-work" href="blackjack.html">Go to Blackjack</a>
-      <a class="link-btn btn-menu" href="https://piq.lol">Back to Menu</a>
-    </div>
-    
-  </div>
+
     <div class="wrap">
       <main class="main">
         <div class="stats">
@@ -664,7 +676,7 @@
 
           <div class="shop-card" style="margin-top:14px;">
             <h4>Tutim</h4>
-            <p class="small">Does absolutely nothing. Pure luxury.</p>
+            <p class="small">Does absolutely nothing. Pure luxury. Can stab, maybe (idk)</p>
             <div class="shop-meta">
               <div><span>Price</span><strong class="highlight">$1000</strong></div>
               <div><span>Effect</span><strong class="highlight">None</strong></div>
@@ -680,26 +692,19 @@
             Every 30 minutes you can work once and earn a random amount from <span class="highlight">$20</span> to <span class="highlight">$50</span>.
           </p>
         </section>
-
-        <section class="panel">
-          <h3>Important</h3>
-          <p class="small">
-            This version stores data in <span class="highlight">localStorage</span>, so balance, shop items and cooldowns survive refreshes in the same browser.
-            The admin password is client-side only, so treat it as convenience, not real security.
-          </p>
         </section>
       </aside>
     </div>
   </div>
 
   <script>
-    const STORAGE_KEY = "golden-night-slots-save-v3";
+    const STORAGE_KEY = "casino-save-v1";
     const WORK_COOLDOWN_MS = 30 * 60 * 1000;
     const PRINTER_TICK_MS = 30 * 60 * 1000;
     const PRINTER_COST = 500;
     const PRINTER_PAYOUT = 25;
     const TUTIM_COST = 1000;
-    const ADMIN_PASSWORD = "twotimerule34";
+    const ADMIN_PASSWORD = "change_me_123";
 
     const SOUNDS = {
       spin: "sounds/spin.mp3",
