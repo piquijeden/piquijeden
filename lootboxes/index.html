@@ -822,23 +822,27 @@
       return items;
     }
 
-    function renderRoll(items) {
-      rollTrack.innerHTML = '';
-      items.forEach(item => {
-        const card = document.createElement('div');
-        card.className = `loot-card ${rarityCardClass(item.rarity)}`;
-        card.innerHTML = `
-          <img src="${item.image}" alt="${item.name}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-fallback',textContent:'No image'}))">
-          <div class="loot-name">${item.name}</div>
-          <div class="loot-meta">
-            <span class="${rarityLabelClass(item.rarity)}">${item.rarity.toUpperCase()}</span><br>
-            Value: ${formatMoney(item.value)}
-          </div>
-        `;
-        rollTrack.appendChild(card);
-      });
-      rollTrack.style.transform = 'translateX(0px)';
-    }
+  function renderRoll(items) {
+  rollTrack.innerHTML = '';
+
+  items.forEach(item => {
+    const card = document.createElement('div');
+    card.className = `loot-card ${rarityCardClass(item.rarity)}`;
+    card.innerHTML = `
+      <img src="${item.image}" alt="${item.name}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-fallback',textContent:'No image'}))">
+      <div class="loot-name">${item.name}</div>
+      <div class="loot-meta">
+        <span class="${rarityLabelClass(item.rarity)}">${item.rarity.toUpperCase()}</span><br>
+        Value: ${formatMoney(item.value)}
+      </div>
+    `;
+    rollTrack.appendChild(card);
+  });
+
+  rollTrack.classList.remove('spinning');
+  rollTrack.style.transition = 'none';
+  rollTrack.style.transform = 'translateX(0px)';
+}
 
 function animateRoll(items, finalItem) {
   renderRoll(items);
