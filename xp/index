@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Windows XP — Click Hunt</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Tahoma,Arial,sans-serif}
+body{background:#3a8bd6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%233b8ed0'/%3E%3Cpath d='M0 70 Q25 45 50 62 T100 52 V100 H0Z' fill='%232d79b9' opacity='.32'/%3E%3C/svg%3E");color:#111}
+
+#desktop{
+ position:relative;width:100vw;height:100vh;
+ background: #3a8bd6 url("images/wallpaper.png") center/cover no-repeat;
+}
+.sun{position:absolute;width:220px;height:220px;border-radius:50%;right:8%;top:7%;
+ background:radial-gradient(circle,#fff8b2 0,#ffd64d 28%,rgba(255,213,77,.15) 55%,transparent 70%);
+ filter:blur(1px);opacity:.7}
+.cloud{position:absolute;background:rgba(255,255,255,.23);border-radius:60px;filter:blur(1px)}
+.c1{width:300px;height:70px;left:7%;top:13%}.c2{width:210px;height:55px;left:58%;top:24%}
+
+#score-window{
+ position:absolute;left:50%;top:50%;transform:translate(-50%,-54%);
+ width:min(720px,92vw);height:min(500px,72vh);
+ background:#ece9d8;border:2px solid #0b3d91;border-radius:9px 9px 4px 4px;
+ box-shadow:0 10px 40px rgba(0,0,0,.45);
+ display:flex;flex-direction:column;
+}
+.titlebar{height:34px;background:linear-gradient(#3a8de0,#0d5dcc 45%,#0b4bb0);color:white;
+ display:flex;align-items:center;padding:0 8px;border-radius:7px 7px 0 0;font-weight:bold;
+ font-size:14px;text-shadow:1px 1px #145;}
+.titlebar .logo{width:20px;height:20px;margin-right:7px;border-radius:2px;
+ background:linear-gradient(90deg,#f33 0 48%,#7a0 48% 100%);position:relative}
+.titlebar .logo:after{content:"";position:absolute;left:9px;top:0;width:2px;height:20px;background:#fff}
+.titlebar .controls{margin-left:auto;display:flex;gap:2px}
+.titlebar button{width:23px;height:22px;border:1px solid #083b8d;border-radius:3px;background:#dfe9f9;color:#083b8d;font-weight:bold;line-height:18px}
+.content{flex:1;display:flex;min-height:0;overflow:hidden}
+.left{width:57%;padding:18px;border-right:2px solid #c7c3b4;background:linear-gradient(#faf9f2,#ece9d8)}
+.right{flex:1;padding:14px;background:#f5f3e8;display:flex;flex-direction:column;min-width:0}
+
+h1{font-size:24px;margin:0 0 6px;color:#144d94}
+.subtitle{font-size:12px;color:#555;margin-bottom:14px}
+#game-area{position:relative;height:calc(100% - 115px);min-height:220px;border:2px inset #ddd;background:#b8e0f3;
+ overflow:hidden;cursor:crosshair}
+.target{position:absolute;width:52px;height:52px;border-radius:8px;user-select:none;cursor:pointer;
+ display:grid;place-items:center;font-size:29px;border:2px solid #fff;box-shadow:2px 2px 0 rgba(0,0,0,.3);
+ animation:pop .12s ease-out}
+@keyframes pop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+.target.fading{animation:fadeOut .14s ease forwards;pointer-events:none}
+@keyframes fadeOut{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.82)}}
+
+.target img{width:100%;height:100%;object-fit:cover;border-radius:6px;display:block;pointer-events:none}
+.dead{pointer-events:none}
+
+.statbox{border:2px inset #ddd;background:#fff;padding:10px;margin-bottom:10px}
+.label{font-size:11px;color:#555;text-transform:uppercase}
+.value{font-size:34px;color:#0b4eb2;font-weight:bold}
+.row{display:flex;gap:10px}
+.smallbox{flex:1;border:2px inset #ddd;background:#fafafa;padding:10px}
+.smallbox b{font-size:20px;color:#222}
+button.big{border:2px outset #fff;border-radius:4px;background:linear-gradient(#fff,#d9d5c8);padding:9px 15px;
+ font-family:Tahoma;font-weight:bold;cursor:pointer}
+button.big:active{border-style:inset}
+#message{margin-top:10px;min-height:42px;font-size:12px;padding:8px;border:1px solid #bbb;background:#f6f6f6}
+.help{font-size:11px;color:#444;line-height:1.5}
+
+#taskbar{position:absolute;left:0;right:0;bottom:0;height:38px;
+ background:linear-gradient(#3c9b3c,#18751e 48%,#0d6113);border-top:2px solid #66bb66;
+ display:flex;align-items:center;color:white;z-index:20}
+#start{height:34px;padding:0 15px;border:0;border-right:2px solid #0b4e0e;
+ background:linear-gradient(#6ed35b,#2f8f28);color:white;font:bold italic 18px Arial;cursor:pointer;
+ text-shadow:1px 1px #356b2c}
+.task{margin-left:7px;height:28px;min-width:180px;max-width:260px;padding:6px 13px;background:#2b88cb;
+ border:2px outset #72b6e9;border-radius:3px;font-size:12px;font-weight:bold;color:#fff;cursor:pointer;text-align:left}
+.clock{margin-left:auto;height:34px;padding:10px 14px;border-left:1px solid #0d5711;font-size:12px}
+
+#startmenu{position:absolute;left:0;bottom:38px;width:310px;background:#ece9d8;border:2px solid #154b9b;
+ box-shadow:5px 5px 12px rgba(0,0,0,.35);z-index:30;display:none}
+.menuhead{height:52px;padding:10px;color:white;font-weight:bold;background:linear-gradient(#3c8fe3,#0d5bb7)}
+.menuitem{padding:12px;border-bottom:1px solid #d0ccbc;font-size:13px;background:#faf9f1;cursor:pointer}
+.menuitem:hover{background:#dbeaff}
+.menubottom{padding:8px;text-align:right;background:#ddd8c7}
+#status{font-size:11px;color:#555}
+
+@media(max-width:700px){
+ #score-window{height:calc(100vh - 75px);top:47%;width:96vw}
+ .content{flex-direction:column}.left{width:100%;height:60%;border-right:0;border-bottom:2px solid #c7c3b4}
+ .right{height:40%;overflow:auto}.target{width:46px;height:46px;font-size:24px}.task{min-width:120px}
+}
+
+
+.guide{margin-top:9px;border:2px solid #9b988b;border-radius:4px;background:#faf9f1;
+box-shadow:inset 0 0 0 1px #fff;overflow:hidden}
+.guideTitle{padding:7px 9px;background:linear-gradient(#f7f7f2,#d8d5c7);
+border-bottom:1px solid #aaa;font-weight:bold;font-size:12px;color:#153f79;text-align:center}
+.guideImages{display:flex;justify-content:center;gap:12px;padding:8px 6px;flex-wrap:wrap}
+.guideColumn{display:flex;align-items:center;gap:5px;min-width:0}
+.guideMark{width:27px;height:27px;border-radius:50%;display:grid;place-items:center;
+font-size:20px;font-weight:bold;font-family:Arial}
+.goodMark{background:#dff3df;border:2px solid #4d944d;color:#187018}
+.badMark{background:#f6dddd;border:2px solid #a85c5c;color:#9d0000}
+.guidePreview{display:flex;gap:4px;flex-wrap:wrap;min-height:42px}
+.guidePreview .guideItem{width:40px;height:40px;border:2px solid #78a778;background:#fff;padding:1px}
+.guidePreview.badPreview .guideItem{border-color:#ba7777}
+.guideItem img{width:100%;height:100%;object-fit:cover;display:block}
+
+
+#bootSplash{
+  position:fixed;inset:0;background:#0b49c7;z-index:9999;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  opacity:1;transition:opacity .65s ease;
+}
+#bootImage{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  image-rendering:auto;
+}
+#bootWelcome{
+  position:relative;z-index:2;color:#fff;font-family:Tahoma,Arial,sans-serif;
+  font-size:42px;font-weight:bold;font-style:italic;letter-spacing:-1px;
+  text-shadow:2px 2px 7px rgba(0,0,0,.45);
+  opacity:0;animation:bootWelcomeIn .6s ease .35s forwards;
+}
+#bootProgress{
+  position:absolute;left:50%;bottom:28px;transform:translateX(-50%);
+  width:min(320px,65vw);height:5px;background:rgba(0,0,0,.22);overflow:hidden;
+  border:1px solid rgba(255,255,255,.22);z-index:3;
+}
+#bootProgress span{
+  display:block;width:0;height:100%;background:rgba(255,255,255,.9);
+  animation:bootLoad 2.15s linear forwards;
+}
+#skipBoot{
+  position:absolute;right:14px;bottom:12px;z-index:4;opacity:.35;
+  border:1px solid rgba(255,255,255,.5);background:rgba(0,0,0,.18);color:#fff;
+  border-radius:3px;padding:4px 9px;font:11px Tahoma;cursor:pointer;
+}
+@keyframes bootLoad{to{width:100%}}
+@keyframes bootWelcomeIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+body.booting #desktop{visibility:hidden}
+
+
+#score-window{resize:both;overflow:hidden;min-width:520px;min-height:360px;max-width:95vw;max-height:88vh}
+#score-window.maximized{
+  left:0 !important;top:0 !important;transform:none !important;
+  width:100vw !important;height:calc(100vh - 38px) !important;
+  max-width:none;max-height:none;border-radius:0;
+}
+#score-window.minimized{display:none}
+.titlebar{cursor:default;user-select:none}
+.titlebar.dragging{cursor:grabbing}
+.titlebar button{cursor:pointer}
+
+
+.big{white-space:nowrap}
+.powerBtn{
+  border:2px outset #fff;background:linear-gradient(#f7f7f7,#cfcbbd);
+  padding:7px 10px;font:11px Tahoma,Arial,sans-serif;font-weight:bold;color:#333;
+  cursor:pointer;border-radius:3px;
+}
+.powerBtn:active{border-style:inset}
+@media(max-width:700px){
+  .row{flex-wrap:wrap}
+  .row .big{flex:1 1 auto}
+}
+
+
+#shutdownScreen{position:fixed;inset:0;background:#000;z-index:10000;display:flex;align-items:center;justify-content:center}
+.shutdownBox{width:min(440px,88vw);border:2px solid #2857a6;background:#ece9d8;box-shadow:0 0 30px rgba(0,0,0,.7)}
+.shutdownTitle{padding:10px;background:linear-gradient(#3d92e2,#0c51b5);color:#fff;font-weight:bold}
+.shutdownText{padding:28px 20px;font:16px Tahoma;color:#222;text-align:center}
+.shutdownBox button{display:block;margin:0 auto 20px;padding:7px 18px;font:12px Tahoma;cursor:pointer}
+
+</style>
+</head>
+<body>
+<div id="bootSplash" aria-label="Windows XP startup screen">
+  <img id="bootImage" src="images/boot.png" alt="">
+  <div id="bootWelcome">welcome</div>
+  <div id="bootProgress"><span></span></div>
+  <button id="skipBoot" type="button">Skip</button>
+  <audio id="startupSound" preload="auto">
+    <source src="sounds/startup.wav" type="audio/wav">
+  </audio>
+</div>
+
+<div id="desktop">
+ <div class="sun"></div><div class="cloud c1"></div><div class="cloud c2"></div>
+
+ <div id="score-window">
+   <div class="titlebar">
+     <div class="logo"></div> Click Hunt — Windows XP
+     <div class="controls"><button title="Minimize" onclick="minimizeWindow(event)">_</button><button title="Maximize" onclick="toggleMaximize(event)">□</button><button title="Close" onclick="closeWindow(event)">×</button></div>
+   </div>
+   <div class="content">
+     <div class="left">
+       <h1>Find the image!</h1>
+       <div class="subtitle">Click the correct image before it disappears. One mistake ends the round.</div>
+       <div id="game-area" aria-label="Obszar gry"></div>
+       <div class="row" style="margin-top:10px">
+         <button class="big" onclick="startGame()">▶ New Game</button>
+         <button class="big" onclick="resetGame()">↻ Reset Game</button>
+         <button class="big" onclick="toggleSound()" id="soundBtn">🔊 Sound: ON</button>
+       </div>
+     </div>
+     <div class="right">
+       <div class="statbox"><div class="label">Score</div><div id="score" class="value">0</div></div>
+       <div class="statbox"><div class="label">Best score</div><div id="best" class="value">0</div></div>
+       <div class="row">
+         <div class="smallbox"><div class="label">Level</div><b id="level">1</b></div>
+         <div class="smallbox"><div class="label">Time</div><b id="time">30</b>s</div>
+       </div>
+       <div id="message">Press "New Game" to start.</div>
+
+       <div class="guide">
+         <div class="guideTitle">HOW TO PLAY</div>
+         <div class="guideImages" aria-label="Correct and wrong images">
+           <div class="guideColumn">
+             <div class="guideMark goodMark">✓</div>
+             <div id="goodPreview" class="guidePreview"></div>
+           </div>
+           <div class="guideColumn">
+             <div class="guideMark badMark">✕</div>
+             <div id="badPreview" class="guidePreview badPreview"></div>
+           </div>
+         </div>
+       </div>
+
+       <p id="status">Ready.</p>
+     </div>
+   </div>
+ </div>
+
+ 
+<div id="startmenu">
+   <div class="menuhead">piq — Windows XP Edition</div>
+   <div class="menuitem" onclick="startGame()">🎮 Launch Click Hunt</div>
+   <div class="menuitem" onclick="resetGame()">↻ Reset Game</div>
+   <div class="menuitem" onclick="toggleSound()">🔊 Toggle Sound</div>
+   <div class="menuitem" onclick="openPiq()">🌐 Visit piq.lol</div>
+   <div class="menubottom">
+      <button class="powerBtn" onclick="powerOff()">⏻ Turn Off Computer</button>
+   </div>
+ </div>
+
+ <div id="taskbar">
+   <button id="start" onclick="toggleMenu()">start</button>
+   <button class="task" onclick="restoreWindow()">🖥 Click Hunt — Windows XP</button>
+   <div class="clock" id="clock">--:--</div>
+ </div>
+</div>
+
+<script>
+const gameArea = document.getElementById('game-area');
+const scoreEl = document.getElementById('score');
+const bestEl = document.getElementById('best');
+const levelEl = document.getElementById('level');
+const timeEl = document.getElementById('time');
+const msgEl = document.getElementById('message');
+const statusEl = document.getElementById('status');
+
+let score = 0, best = Number(localStorage.getItem('xp_click_best') || 0);
+let level = 1, timeLeft = 30, timer = null, playing = false, soundOn = true;
+let targetId = 0, audioCtx;
+
+bestEl.textContent = best;
+
+const images = [
+  {src:'images/target1.png', n:'good1', good:true},
+  {src:'images/target2.png', n:'good2', good:true},
+  {src:'images/target3.png', n:'good3', good:true},
+  {src:'images/target4.png', n:'wrong1', good:false},
+  {src:'images/target5.png', n:'wrong2', good:false}
+];
+
+const xpSounds = {
+  correct: new Audio("https://lelegofrog.github.io/lelegodlex/win/xp/Windows%20XP%20Notify.wav"),
+  wrong: new Audio("https://lelegofrog.github.io/lelegodlex/win/xp/Windows%20XP%20Critical%20Stop.wav"),
+  gameover: new Audio("https://lelegofrog.github.io/lelegodlex/win/xp/Windows%20XP%20Error.wav"),
+  start: new Audio("https://lelegofrog.github.io/lelegodlex/win/xp/Windows%20XP%20Start.wav"),
+  hover: new Audio("https://lelegofrog.github.io/lelegodlex/win/xp/Windows%20XP%20Menu%20Command.wav")
+};
+
+Object.values(xpSounds).forEach(a => {
+  a.preload = "auto";
+  a.volume = 0.72;
+});
+
+function playXPSound(name){
+  if(!soundOn || !xpSounds[name]) return;
+  const audio=xpSounds[name];
+  try{
+    audio.currentTime=0;
+    const promise=audio.play();
+    if(promise && promise.catch) promise.catch(()=>{});
+  }catch(e){}
+}
+
+function beep(freq=600, duration=.08, type='square', volume=.035){
+  // Compatibility wrapper: game events now use actual Windows XP WAV sounds.
+  playXPSound('correct');
+}
+
+function winSound(){ playXPSound('correct'); }
+function loseSound(){ playXPSound('wrong'); }
+
+function toggleSound(){soundOn=!soundOn;document.getElementById('soundBtn').textContent=(soundOn?'🔊 Sound: ON':'🔇 Sound: OFF');if(soundOn) playXPSound('hover')}
+function toggleMenu(){const m=document.getElementById('startmenu');m.style.display=m.style.display==='block'?'none':'block'}
+function flash(){const w=document.getElementById('score-window');w.animate([{transform:'translate(-50%,-54%)'},{transform:'translate(-50%,-54%) scale(.98)'},{transform:'translate(-50%,-54%)'}],{duration:240});}
+
+function startGame(){
+  document.getElementById('startmenu').style.display='none';
+  clearInterval(timer); score=0; level=1; timeLeft=30; playing=true;
+  scoreEl.textContent=score; levelEl.textContent=level; timeEl.textContent=timeLeft;
+  msgEl.textContent='Start! Click only the image shown as correct.';
+  statusEl.textContent='Round active.';
+  spawnTarget(); timer=setInterval(tick,1000); beep(520,.07);
+}
+function resetGame(){
+  clearInterval(timer); playing=false; score=0; level=1; timeLeft=30;
+  scoreEl.textContent=0; levelEl.textContent=1; timeEl.textContent=30; playXPSound('start');
+  gameArea.innerHTML=''; msgEl.textContent='Press "New Game" to start.'; statusEl.textContent='Ready.'; document.getElementById('goodPreview').innerHTML=''; document.getElementById('badPreview').innerHTML='';
+}
+function tick(){
+  if(!playing) return;
+  timeLeft--; timeEl.textContent=timeLeft;
+  if(timeLeft<=0) endGame('Time is up!');
+  else if(timeLeft%5===0) beep(380,.04,'sine',.02);
+}
+function shuffle(arr){
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+function spawnTarget(){
+  if(!playing) return;
+  gameArea.innerHTML='';
+
+  // Always display all 5 images:
+  // 3 are permanently correct, 2 are permanently wrong.
+  const items = shuffle(images);
+
+  updateGuide(
+    images.filter(img => img.good),
+    images.filter(img => !img.good)
+  );
+
+  const positions=[];
+  items.forEach((img,index)=>{
+    const d=document.createElement('div');
+    d.className='target';
+    d.innerHTML=`<img src="${img.src}" alt="" draggable="false">`;
+    d.dataset.good=img.good?'1':'0';
+    d.title=img.good?'CORRECT':'WRONG';
+
+    const size=52,pad=8;
+    let x,y,tries=0;
+    do{
+      x=Math.floor(Math.random()*(Math.max(1,gameArea.clientWidth-size-pad*2)))+pad;
+      y=Math.floor(Math.random()*(Math.max(1,gameArea.clientHeight-size-pad*2)))+pad;
+      tries++;
+    }while(positions.some(p=>Math.hypot(p.x-x,p.y-y)<62) && tries<80);
+
+    positions.push({x,y});
+    d.style.left=x+'px';
+    d.style.top=y+'px';
+
+    // Each image disappears independently. The speed increases with score.
+    const baseLife=Math.max(500,2400-score*60-level*100);
+    const stagger=index*Math.min(180,baseLife*0.10);
+    const life=Math.max(350,baseLife-stagger);
+
+    setTimeout(()=>{
+      if(!d.isConnected || !playing) return;
+      d.classList.add('fading');
+      setTimeout(()=>{if(d.isConnected)d.remove()},140);
+    },life);
+
+    d.addEventListener('click',(ev)=>{
+      ev.stopPropagation();
+      if(d.dataset.good==='1') hit(d); else miss();
+    });
+
+    gameArea.appendChild(d);
+  });
+
+  statusEl.textContent='3 correct images • 2 wrong images';
+}
+
+function updateGuide(goodImages,badImages){
+  const goodBox=document.getElementById('goodPreview');
+  const badBox=document.getElementById('badPreview');
+  goodBox.innerHTML='';
+  badBox.innerHTML='';
+
+  goodImages.forEach(img=>{
+    const item=document.createElement('div');
+    item.className='guideItem';
+    item.innerHTML=`<img src="${img.src}" alt="">`;
+    goodBox.appendChild(item);
+  });
+
+  badImages.forEach(img=>{
+    const item=document.createElement('div');
+    item.className='guideItem';
+    item.innerHTML=`<img src="${img.src}" alt="">`;
+    badBox.appendChild(item);
+  });
+}
+gameArea.addEventListener('click', ()=>{if(playing) miss()});
+
+function hit(d){
+  if(!playing) return;
+  score++; scoreEl.textContent=score; 
+  if(score>best){best=score;bestEl.textContent=best;localStorage.setItem('xp_click_best',best)}
+  if(score%5===0){level++;levelEl.textContent=level}
+  msgEl.textContent='✓ Correct! +1 point.';
+  statusEl.textContent='Next set...';
+  winSound();
+  setTimeout(spawnTarget,60);
+}
+function miss(){
+  if(!playing) return;
+  loseSound(); endGame('❌ Wrong click — game over!');
+}
+function endGame(text){
+  playing=false; clearInterval(timer); gameArea.innerHTML='';
+  msgEl.textContent=text+' Score: '+score+'.';
+  statusEl.textContent='Round over.';
+}
+
+function updateClock(){
+  const d=new Date();
+  document.getElementById('clock').textContent=d.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'});
+}
+setInterval(updateClock,1000); updateClock();
+
+// Windows XP-style startup splash. Replace sounds/startup.wav with your own file if desired.
+const bootSplash=document.getElementById('bootSplash');
+const startupSound=document.getElementById('startupSound');
+const skipBoot=document.getElementById('skipBoot');
+
+document.body.classList.add('booting');
+
+function finishBoot(){
+  if(!bootSplash || bootSplash.dataset.done==='1') return;
+  bootSplash.dataset.done='1';
+  bootSplash.style.opacity='0';
+  document.body.classList.remove('booting');
+  setTimeout(()=>bootSplash.remove(),700);
+}
+
+function playStartupSound(){
+  if(!startupSound) return;
+  startupSound.currentTime=0;
+  const p=startupSound.play();
+  if(p && p.catch) p.catch(()=>{});
+}
+
+window.addEventListener('load',()=>{
+  setTimeout(()=>playStartupSound(),120);
+  setTimeout(()=>finishBoot(),2450);
+});
+
+['pointerdown','keydown','touchstart'].forEach(evt=>{
+  window.addEventListener(evt,()=>{
+    // Browser autoplay policies allow playback after the first user gesture.
+    if(bootSplash && bootSplash.dataset.done!=='1') playStartupSound();
+  },{once:true,passive:true});
+});
+
+skipBoot.addEventListener('click',()=>{
+  playStartupSound();
+  finishBoot();
+});
+
+
+// --- Windows XP-style window controls ---
+const gameWindow=document.getElementById('score-window');
+const titlebar=gameWindow.querySelector('.titlebar');
+let dragState=null;
+let restoreBounds=null;
+
+function minimizeWindow(ev){
+  if(ev) ev.stopPropagation();
+  gameWindow.classList.add('minimized');
+}
+
+function restoreWindow(){
+  gameWindow.classList.remove('minimized');
+  if(gameWindow.classList.contains('maximized')) return;
+}
+
+function toggleMaximize(ev){
+  if(ev) ev.stopPropagation();
+  if(gameWindow.classList.contains('maximized')){
+    gameWindow.classList.remove('maximized');
+    if(restoreBounds){
+      gameWindow.style.left=restoreBounds.left;
+      gameWindow.style.top=restoreBounds.top;
+      gameWindow.style.width=restoreBounds.width;
+      gameWindow.style.height=restoreBounds.height;
+      gameWindow.style.transform='none';
+    }
+  }else{
+    const r=gameWindow.getBoundingClientRect();
+    restoreBounds={
+      left:r.left+'px',top:r.top+'px',
+      width:r.width+'px',height:r.height+'px'
+    };
+    gameWindow.classList.add('maximized');
+  }
+}
+
+function closeWindow(ev){
+  if(ev) ev.stopPropagation();
+  clearInterval(timer);
+  playing=false;
+  gameWindow.classList.add('minimized');
+  msgEl.textContent='Window closed. Click the taskbar button to restore it.';
+  statusEl.textContent='Closed.';
+}
+
+function clampWindow(){
+  if(gameWindow.classList.contains('maximized') || gameWindow.classList.contains('minimized')) return;
+  const r=gameWindow.getBoundingClientRect();
+  const margin=4;
+  const taskbarH=38;
+  let left=r.left, top=r.top;
+  if(left<margin) left=margin;
+  if(top<margin) top=margin;
+  if(left+r.width>window.innerWidth-margin) left=window.innerWidth-r.width-margin;
+  if(top+r.height>window.innerHeight-taskbarH-margin) top=window.innerHeight-taskbarH-r.height-margin;
+  gameWindow.style.left=Math.max(margin,left)+'px';
+  gameWindow.style.top=Math.max(margin,top)+'px';
+  gameWindow.style.transform='none';
+}
+
+titlebar.addEventListener('mousedown',(e)=>{
+  if(e.target.closest('button')) return;
+  if(gameWindow.classList.contains('maximized') || gameWindow.classList.contains('minimized')) return;
+  const r=gameWindow.getBoundingClientRect();
+  dragState={
+    offsetX:e.clientX-r.left,
+    offsetY:e.clientY-r.top
+  };
+  titlebar.classList.add('dragging');
+  gameWindow.style.transform='none';
+  e.preventDefault();
+});
+
+window.addEventListener('mousemove',(e)=>{
+  if(!dragState) return;
+  gameWindow.style.left=(e.clientX-dragState.offsetX)+'px';
+  gameWindow.style.top=(e.clientY-dragState.offsetY)+'px';
+  clampWindow();
+});
+
+window.addEventListener('mouseup',()=>{
+  if(dragState){
+    dragState=null;
+    titlebar.classList.remove('dragging');
+  }
+});
+
+titlebar.addEventListener('dblclick',(e)=>{
+  if(e.target.closest('button')) return;
+  toggleMaximize(e);
+});
+
+window.addEventListener('resize',()=>clampWindow());
+
+// Centered at startup, but become freely movable after first drag.
+
+
+function openPiq(){
+  window.location.href='https://piq.lol';
+}
+
+function powerOff(){
+  closeWindow();
+  document.getElementById('startmenu').style.display='none';
+  const overlay=document.createElement('div');
+  overlay.id='shutdownScreen';
+  overlay.innerHTML='<div class="shutdownBox"><div class="shutdownTitle">Windows XP</div><div class="shutdownText">It is now safe to turn off your computer.</div><button onclick="location.reload()">Restart</button></div>';
+  document.body.appendChild(overlay);
+}
+
+
+</script>
+</body>
+</html>
