@@ -236,7 +236,6 @@ body.booting #desktop{visibility:hidden}
    <div class="menuitem" onclick="startGame()">🎮 Launch Click Hunt</div>
    <div class="menuitem" onclick="resetGame()">↻ Reset Game</div>
    <div class="menuitem" onclick="toggleSound()">🔊 Toggle Sound</div>
-   <div class="menuitem" onclick="openPiq()">🌐 Visit piq.lol</div>
    <div class="menubottom">
       <button class="powerBtn" onclick="powerOff()">⏻ Turn Off Computer</button>
    </div>
@@ -570,17 +569,9 @@ window.addEventListener('resize',()=>clampWindow());
 // Centered at startup, but become freely movable after first drag.
 
 
-function openPiq(){
-  window.location.href='https://piq.lol';
-}
 
 function powerOff(){
-  closeWindow();
-  document.getElementById('startmenu').style.display='none';
-  const overlay=document.createElement('div');
-  overlay.id='shutdownScreen';
-  overlay.innerHTML='<div class="shutdownBox"><div class="shutdownTitle">Windows XP</div><div class="shutdownText">It is now safe to turn off your computer.</div><button onclick="location.reload()">Restart</button></div>';
-  document.body.appendChild(overlay);
+  window.location.href='https://piq.lol';
 }
 
 
