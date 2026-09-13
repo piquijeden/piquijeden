@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -403,73 +403,60 @@ function updateGuide(goodImages,badImages){
     badBox.appendChild(item);
   });
 }
-gameArea.addEventListener('click', ()=>{if(playing) miss()});
 
-function hit(d){
+gameArea.addEventListener('click', ()=>{
+  if(playing) miss();
+});
+
+function hit(){
   if(!playing) return;
-  score++; scoreEl.textContent=score; 
-  if(score>best){best=score;bestEl.textContent=best;localStorage.setItem('xp_click_best',best)}
-  if(score%5===0){level++;levelEl.textContent=level}
+
+  score++;
+  scoreEl.textContent=score;
+
+  if(score>best){
+    best=score;
+    bestEl.textContent=best;
+    localStorage.setItem('xp_click_best',best);
+  }
+
+  if(score%5===0){
+    level++;
+    levelEl.textContent=level;
+  }
+
   msgEl.textContent='✓ Correct! +1 point.';
   statusEl.textContent='Next set...';
   winSound();
-  setTimeout(spawnTarget,60);
+
+  // Tiny delay so the click feedback can be seen/heard.
+  setTimeout(()=>{
+    if(playing) spawnTarget();
+  },120);
 }
+
 function miss(){
   if(!playing) return;
-  loseSound(); endGame('❌ Wrong click — game over!');
+  loseSound();
+  endGame('❌ Wrong click — game over!');
 }
+
 function endGame(text){
-  playing=false; clearInterval(timer); gameArea.innerHTML='';
+  playing=false;
+  clearInterval(timer);
+  gameArea.innerHTML='';
   msgEl.textContent=text+' Score: '+score+'.';
   statusEl.textContent='Round over.';
+  if(xpSounds.gameover) playXPSound('gameover');
 }
 
 function updateClock(){
   const d=new Date();
-  document.getElementById('clock').textContent=d.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('clock').textContent=
+    d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
 }
-setInterval(updateClock,1000); updateClock();
-
-// Windows XP-style startup splash. Replace sounds/startup.wav with your own file if desired.
-const bootSplash=document.getElementById('bootSplash');
-const startupSound=document.getElementById('startupSound');
-const skipBoot=document.getElementById('skipBoot');
-
-document.body.classList.add('booting');
-
-function finishBoot(){
-  if(!bootSplash || bootSplash.dataset.done==='1') return;
-  bootSplash.dataset.done='1';
-  bootSplash.style.opacity='0';
-  document.body.classList.remove('booting');
-  setTimeout(()=>bootSplash.remove(),700);
-}
-
-function playStartupSound(){
-  if(!startupSound) return;
-  startupSound.currentTime=0;
-  const p=startupSound.play();
-  if(p && p.catch) p.catch(()=>{});
-}
-
-window.addEventListener('load',()=>{
-  setTimeout(()=>playStartupSound(),120);
-  setTimeout(()=>finishBoot(),2450);
-});
-
-['pointerdown','keydown','touchstart'].forEach(evt=>{
-  window.addEventListener(evt,()=>{
-    // Browser autoplay policies allow playback after the first user gesture.
-    if(bootSplash && bootSplash.dataset.done!=='1') playStartupSound();
-  },{once:true,passive:true});
-});
-
-skipBoot.addEventListener('click',()=>{
-  playStartupSound();
-  finishBoot();
-});
-
+setInterval(updateClock,1000);
+updateClock();
 
 // --- Windows XP-style window controls ---
 const gameWindow=document.getElementById('score-window');
@@ -484,26 +471,29 @@ function minimizeWindow(ev){
 
 function restoreWindow(){
   gameWindow.classList.remove('minimized');
-  if(gameWindow.classList.contains('maximized')) return;
 }
 
 function toggleMaximize(ev){
   if(ev) ev.stopPropagation();
+
   if(gameWindow.classList.contains('maximized')){
     gameWindow.classList.remove('maximized');
+
     if(restoreBounds){
       gameWindow.style.left=restoreBounds.left;
       gameWindow.style.top=restoreBounds.top;
       gameWindow.style.width=restoreBounds.width;
       gameWindow.style.height=restoreBounds.height;
-      gameWindow.style.transform='none';
     }
   }else{
     const r=gameWindow.getBoundingClientRect();
     restoreBounds={
-      left:r.left+'px',top:r.top+'px',
-      width:r.width+'px',height:r.height+'px'
+      left:r.left+'px',
+      top:r.top+'px',
+      width:r.width+'px',
+      height:r.height+'px'
     };
+
     gameWindow.classList.add('maximized');
   }
 }
@@ -512,21 +502,28 @@ function closeWindow(ev){
   if(ev) ev.stopPropagation();
   clearInterval(timer);
   playing=false;
+  gameArea.innerHTML='';
   gameWindow.classList.add('minimized');
   msgEl.textContent='Window closed. Click the taskbar button to restore it.';
   statusEl.textContent='Closed.';
 }
 
 function clampWindow(){
-  if(gameWindow.classList.contains('maximized') || gameWindow.classList.contains('minimized')) return;
+  if(gameWindow.classList.contains('maximized') ||
+     gameWindow.classList.contains('minimized')) return;
+
   const r=gameWindow.getBoundingClientRect();
   const margin=4;
   const taskbarH=38;
-  let left=r.left, top=r.top;
+
+  let left=r.left;
+  let top=r.top;
+
   if(left<margin) left=margin;
   if(top<margin) top=margin;
   if(left+r.width>window.innerWidth-margin) left=window.innerWidth-r.width-margin;
   if(top+r.height>window.innerHeight-taskbarH-margin) top=window.innerHeight-taskbarH-r.height-margin;
+
   gameWindow.style.left=Math.max(margin,left)+'px';
   gameWindow.style.top=Math.max(margin,top)+'px';
   gameWindow.style.transform='none';
@@ -534,12 +531,15 @@ function clampWindow(){
 
 titlebar.addEventListener('mousedown',(e)=>{
   if(e.target.closest('button')) return;
-  if(gameWindow.classList.contains('maximized') || gameWindow.classList.contains('minimized')) return;
+  if(gameWindow.classList.contains('maximized') ||
+     gameWindow.classList.contains('minimized')) return;
+
   const r=gameWindow.getBoundingClientRect();
   dragState={
     offsetX:e.clientX-r.left,
     offsetY:e.clientY-r.top
   };
+
   titlebar.classList.add('dragging');
   gameWindow.style.transform='none';
   e.preventDefault();
@@ -547,6 +547,7 @@ titlebar.addEventListener('mousedown',(e)=>{
 
 window.addEventListener('mousemove',(e)=>{
   if(!dragState) return;
+
   gameWindow.style.left=(e.clientX-dragState.offsetX)+'px';
   gameWindow.style.top=(e.clientY-dragState.offsetY)+'px';
   clampWindow();
@@ -566,15 +567,67 @@ titlebar.addEventListener('dblclick',(e)=>{
 
 window.addEventListener('resize',()=>clampWindow());
 
-// Centered at startup, but become freely movable after first drag.
+// --- Windows XP startup screen ---
+const bootSplash=document.getElementById('bootSplash');
+const startupSound=document.getElementById('startupSound');
+const skipBoot=document.getElementById('skipBoot');
 
+document.body.classList.add('booting');
 
+function finishBoot(){
+  if(!bootSplash || bootSplash.dataset.done==='1') return;
+
+  bootSplash.dataset.done='1';
+  bootSplash.style.opacity='0';
+  document.body.classList.remove('booting');
+
+  setTimeout(()=>{
+    if(bootSplash.isConnected) bootSplash.remove();
+  },700);
+}
+
+function playStartupSound(){
+  if(!startupSound) return;
+
+  startupSound.currentTime=0;
+  const promise=startupSound.play();
+
+  if(promise && promise.catch){
+    promise.catch(()=>{});
+  }
+}
+
+window.addEventListener('load',()=>{
+  setTimeout(playStartupSound,120);
+  setTimeout(finishBoot,2450);
+});
+
+window.addEventListener('pointerdown',()=>{
+  if(bootSplash && bootSplash.dataset.done!=='1'){
+    playStartupSound();
+  }
+},{once:true,passive:true});
+
+window.addEventListener('keydown',()=>{
+  if(bootSplash && bootSplash.dataset.done!=='1'){
+    playStartupSound();
+  }
+},{once:true});
+
+skipBoot.addEventListener('click',()=>{
+  playStartupSound();
+  finishBoot();
+});
+
+// --- Start menu / power button ---
+function toggleMenu(){
+  const m=document.getElementById('startmenu');
+  m.style.display=m.style.display==='block'?'none':'block';
+}
 
 function powerOff(){
   window.location.href='https://piq.lol';
 }
-
-
 </script>
 </body>
 </html>
